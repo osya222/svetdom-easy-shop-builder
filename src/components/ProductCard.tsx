@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Product } from "@/types/product";
 import { useCart } from "@/context/CartContext";
-import { Plus, Zap, Palette } from "lucide-react";
+import { Plus, Zap, Palette, QrCode } from "lucide-react";
 import { products } from "@/data/products";
 
 interface ProductCardProps {
@@ -12,6 +14,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
+  const [showPayment, setShowPayment] = useState(false);
   
   const getCompatibleProduct = () => {
     if (!product.compatibleWith || product.compatibleWith.length === 0) return null;
@@ -52,14 +55,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
         {compatibleProduct && (
           <div className="bg-secondary/50 p-2 rounded-md mb-4 text-xs">
             <p className="text-muted-foreground">
-              Совместим с <span className="font-medium">{compatibleProduct.name}</span> 
-              <br />
-              для суммы {product.price + compatibleProduct.price} ₽
+              Добавь к лампе №{compatibleProduct.id} — получишь {product.price + compatibleProduct.price} ₽
             </p>
           </div>
         )}
         
-        <div className="mt-auto">
+        <div className="mt-auto space-y-2">
           <Button 
             onClick={() => addItem(product)}
             className="w-full"
@@ -68,8 +69,56 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <Plus className="h-4 w-4 mr-2" />
             Добавить в корзину
           </Button>
+          <Button 
+            onClick={() => setShowPayment(true)}
+            variant="outline"
+            className="w-full"
+            size="sm"
+          >
+            <QrCode className="h-4 w-4 mr-2" />
+            Оплатить по СБП
+          </Button>
         </div>
       </CardContent>
+      
+      {/* Диалог оплаты */}
+      <Dialog open={showPayment} onOpenChange={setShowPayment}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Оплата по СБП</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            <div className="bg-muted p-8 rounded-lg">
+              <img 
+                src="/images/sbp_qr_stub.png" 
+                alt="QR-код СБП" 
+                className="w-32 h-32 mx-auto mb-4"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                  if (placeholder) placeholder.style.display = 'block';
+                }}
+              />
+              <div className="hidden">
+                <QrCode className="h-32 w-32 mx-auto mb-4 text-muted-foreground" />
+              </div>
+              <p className="text-sm text-muted-foreground">QR-код СБП</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold">Сумма к оплате: {product.price} ₽</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                {product.name}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Наведите камеру телефона на QR-код или откройте приложение банка
+              </p>
+            </div>
+            <Badge variant="secondary" className="text-xs">
+              Комиссия 0% • Мгновенное зачисление
+            </Badge>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

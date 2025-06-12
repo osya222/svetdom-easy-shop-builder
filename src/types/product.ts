@@ -15,6 +15,14 @@ export interface CartItem {
   quantity: number;
 }
 
+export interface ReadySet {
+  id: number;
+  name: string;
+  price: number;
+  products: number[];
+  description: string;
+}
+
 export interface CartContextType {
   items: CartItem[];
   addItem: (product: Product) => void;

@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import Categories from "@/components/Categories";
 import Benefits from "@/components/Benefits";
 import ProductGrid from "@/components/ProductGrid";
+import ReadySets from "@/components/ReadySets";
 import Cart from "@/components/Cart";
 import Footer from "@/components/Footer";
 
@@ -23,6 +24,9 @@ const Index = () => {
       
       {/* Benefits */}
       <Benefits />
+      
+      {/* Ready Sets */}
+      <ReadySets />
       
       {/* Main content with products and cart */}
       <div className="container mx-auto px-4 py-8">
