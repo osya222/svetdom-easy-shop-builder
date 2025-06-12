@@ -18,7 +18,7 @@ const HeroSection = ({ onScrollToProducts }: HeroSectionProps) => {
             Освети дом правильно
           </h1>
           <p className="text-xl md:text-2xl mb-8 text-muted-foreground">
-            50 видов LED ламп E27, которые легко сложить в ровные суммы 100₽, 1000₽, 2000₽, 3000₽ и 4000₽
+            Качественные LED лампы для вашего дома с удобной оплатой
           </p>
           <Button 
             size="lg" 
