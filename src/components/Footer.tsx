@@ -28,7 +28,6 @@ const Footer = () => {
             <CardContent className="p-6">
               <h3 className="font-semibold mb-4">О компании</h3>
               <div className="text-sm text-muted-foreground space-y-2">
-                <p>ИП Петров Андрей Викторович</p>
                 <p>ОГРНИП: 123456789012345</p>
                 <p>ИНН: 123456789012</p>
                 <p>Работаем с 2020 года</p>
