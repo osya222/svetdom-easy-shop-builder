@@ -3,9 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import { Minus, Plus, Trash2, ShoppingCart, QrCode, ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
 const CartPage = () => {
@@ -17,12 +20,35 @@ const CartPage = () => {
     totalPrice, 
     totalItems
   } = useCart();
+  const { toast } = useToast();
   
   const [showPayment, setShowPayment] = useState(false);
+  const [customerData, setCustomerData] = useState({
+    firstName: '',
+    lastName: '',
+    phone: '',
+    email: ''
+  });
+
+  const handleCustomerChange = (field: string, value: string) => {
+    setCustomerData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
 
   const handlePaymentComplete = () => {
     setShowPayment(false);
     clearCart();
+    setCustomerData({
+      firstName: '',
+      lastName: '',
+      phone: '',
+      email: ''
+    });
+    toast({
+      title: "Спасибо за заказ!",
+      description: "Ваш заказ успешно оформлен.",
+    });
   };
 
   if (items.length === 0) {
@@ -64,119 +90,174 @@ const CartPage = () => {
             </Link>
           </div>
 
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8">Корзина ({totalItems})</h1>
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8">Оформление заказа</h1>
             
-            <Card>
-              <CardHeader>
-                <CardTitle>Товары в корзине</CardTitle>
-              </CardHeader>
-              
-              <CardContent>
-                {/* Заголовки таблицы - только для больших экранов */}
-                <div className="hidden md:grid md:grid-cols-6 gap-4 mb-4 pb-2 border-b text-sm font-medium text-muted-foreground">
-                  <div className="col-span-2">Товар</div>
-                  <div className="text-center">Цена</div>
-                  <div className="text-center">Количество</div>
-                  <div className="text-center">Сумма</div>
-                  <div className="text-center">Действие</div>
-                </div>
-
-                {/* Список товаров */}
-                <div className="space-y-4">
-                  {items.map((item) => (
-                    <div key={item.product.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 bg-secondary/10 rounded-lg">
-                      {/* Товар */}
-                      <div className="md:col-span-2 flex items-center gap-4">
-                        <img 
-                          src={item.product.image} 
-                          alt={item.product.name}
-                          className="w-16 h-16 object-cover rounded"
-                        />
-                        <div className="min-w-0">
-                          <h3 className="font-medium text-sm line-clamp-2">{item.product.name}</h3>
-                          <p className="text-xs text-muted-foreground">{item.product.power}, {item.product.lightColor}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Левая колонка - Товары и форма клиента */}
+              <div className="space-y-6">
+                {/* Товары в заказе */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Ваш заказ ({totalItems} товара)</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {items.map((item) => (
+                        <div key={item.product.id} className="flex items-center gap-4 p-3 bg-secondary/10 rounded-lg">
+                          <img 
+                            src={item.product.image} 
+                            alt={item.product.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm line-clamp-2">{item.product.name}</h3>
+                            <p className="text-xs text-muted-foreground">{item.product.power}, {item.product.lightColor}</p>
+                            <p className="text-sm font-medium mt-1">
+                              {item.quantity} × {item.product.price} ₽ = {item.product.price * item.quantity} ₽
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="text-sm w-6 text-center">{item.quantity}</span>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                              className="h-6 w-6 p-0"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => removeItem(item.product.id)}
+                              className="h-6 w-6 p-0 text-destructive hover:text-destructive ml-2"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
 
-                      {/* Цена */}
-                      <div className="flex items-center justify-center">
-                        <span className="font-medium">{item.product.price} ₽</span>
+                {/* Форма клиента */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Данные покупателя</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">Имя *</Label>
+                        <Input
+                          id="firstName"
+                          value={customerData.firstName}
+                          onChange={(e) => handleCustomerChange('firstName', e.target.value)}
+                          placeholder="Введите имя"
+                          required
+                        />
                       </div>
-
-                      {/* Количество */}
-                      <div className="flex items-center justify-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </Button>
-                        <span className="font-medium w-8 text-center">{item.quantity}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </Button>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">Фамилия *</Label>
+                        <Input
+                          id="lastName"
+                          value={customerData.lastName}
+                          onChange={(e) => handleCustomerChange('lastName', e.target.value)}
+                          placeholder="Введите фамилию"
+                          required
+                        />
                       </div>
-
-                      {/* Общая сумма */}
-                      <div className="flex items-center justify-center">
-                        <span className="font-bold">{item.product.price * item.quantity} ₽</span>
+                      <div className="space-y-2">
+                        <Label htmlFor="phone">Телефон *</Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={customerData.phone}
+                          onChange={(e) => handleCustomerChange('phone', e.target.value)}
+                          placeholder="+7 (999) 999-99-99"
+                          required
+                        />
                       </div>
-
-                      {/* Действие */}
-                      <div className="flex items-center justify-center">
-                        <Button 
-                          size="sm" 
-                          variant="ghost"
-                          onClick={() => removeItem(item.product.id)}
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={customerData.email}
+                          onChange={(e) => handleCustomerChange('email', e.target.value)}
+                          placeholder="email@example.com"
+                          required
+                        />
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-                <Separator className="my-6" />
-
-                {/* Итоговая сумма и кнопки */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center text-xl font-bold">
-                    <span>Итого:</span>
-                    <span>{totalPrice} ₽</span>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <Button 
-                      className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white"
-                      size="lg"
-                      onClick={() => setShowPayment(true)}
-                    >
-                      <QrCode className="h-5 w-5 mr-2" />
-                      Оплатить по СБП
-                    </Button>
+              {/* Правая колонка - Итоги заказа */}
+              <div>
+                <Card className="sticky top-4">
+                  <CardHeader>
+                    <CardTitle>Итоги заказа</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      {items.map((item) => (
+                        <div key={item.product.id} className="flex justify-between text-sm">
+                          <span className="truncate mr-2">{item.product.name} × {item.quantity}</span>
+                          <span className="font-medium">{item.product.price * item.quantity} ₽</span>
+                        </div>
+                      ))}
+                    </div>
                     
-                    <Button 
-                      variant="outline" 
-                      size="lg"
-                      onClick={clearCart}
-                      className="sm:w-auto"
-                    >
-                      <Trash2 className="h-5 w-5 mr-2" />
-                      Очистить корзину
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                    <Separator />
+                    
+                    <div className="flex justify-between items-center text-xl font-bold">
+                      <span>Общая сумма:</span>
+                      <span>{totalPrice} ₽</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button 
+                        className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                        size="lg"
+                        onClick={() => setShowPayment(true)}
+                        disabled={!isFormValid}
+                      >
+                        <QrCode className="h-5 w-5 mr-2" />
+                        Оплатить по СБП
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="lg"
+                        onClick={clearCart}
+                        className="w-full"
+                      >
+                        <Trash2 className="h-5 w-5 mr-2" />
+                        Очистить корзину
+                      </Button>
+                    </div>
+
+                    {!isFormValid && (
+                      <p className="text-sm text-muted-foreground text-center">
+                        Заполните все обязательные поля для оформления заказа
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -217,7 +298,7 @@ const CartPage = () => {
               className="w-full bg-green-600 hover:bg-green-700 text-white"
               onClick={handlePaymentComplete}
             >
-              Оплата произведена
+              Я оплатил
             </Button>
           </div>
         </DialogContent>
