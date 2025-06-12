@@ -30,6 +30,8 @@ const ProductGrid = ({ selectedCategory }: ProductGridProps) => {
         return "Аварийные лампы";
       case "decorative":
         return "Декоративные лампы";
+      case "set":
+        return "Готовые наборы";
       default:
         return "Каталог LED ламп E27";
     }
