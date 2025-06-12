@@ -67,21 +67,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-      <div className="relative overflow-hidden">
-        <img 
-          src={product.image} 
-          alt={product.name}
-          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute top-2 right-2">
-          <Badge variant="secondary" className="bg-background/80 backdrop-blur-sm">
+      
+      <CardContent className="p-4 flex flex-col flex-1">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-semibold text-lg line-clamp-2 flex-1">{product.name}</h3>
+          <Badge variant="secondary" className="ml-2 shrink-0">
             {product.price} ₽
           </Badge>
         </div>
-      </div>
-      
-      <CardContent className="p-4 flex flex-col flex-1">
-        <h3 className="font-semibold text-lg mb-2 line-clamp-2">{product.name}</h3>
         
         <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
           <Zap className="h-4 w-4" />
