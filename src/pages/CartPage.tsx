@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import { Minus, Plus, Trash2, ShoppingCart, QrCode, ArrowLeft } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 
@@ -23,6 +23,12 @@ const CartPage = () => {
   const { toast } = useToast();
   
   const [showPayment, setShowPayment] = useState(false);
+  const [orderSent, setOrderSent] = useState(false);
+  const [modalCustomerData, setModalCustomerData] = useState({
+    name: '',
+    phone: '',
+    email: ''
+  });
   const [customerData, setCustomerData] = useState({
     firstName: '',
     lastName: '',
@@ -34,21 +40,38 @@ const CartPage = () => {
     setCustomerData(prev => ({ ...prev, [field]: value }));
   };
 
-  const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
+  const handleModalCustomerChange = (field: string, value: string) => {
+    setModalCustomerData(prev => ({ ...prev, [field]: value }));
+  };
 
-  const handlePaymentComplete = () => {
-    setShowPayment(false);
-    clearCart();
-    setCustomerData({
-      firstName: '',
-      lastName: '',
-      phone: '',
-      email: ''
-    });
-    toast({
-      title: "Спасибо за заказ!",
-      description: "Ваш заказ успешно оформлен.",
-    });
+  const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
+  const isModalFormValid = modalCustomerData.name && modalCustomerData.phone && modalCustomerData.email;
+
+  const handleOrderSubmit = () => {
+    if (!isModalFormValid) return;
+    
+    setOrderSent(true);
+    
+    setTimeout(() => {
+      setShowPayment(false);
+      setOrderSent(false);
+      clearCart();
+      setModalCustomerData({
+        name: '',
+        phone: '',
+        email: ''
+      });
+      setCustomerData({
+        firstName: '',
+        lastName: '',
+        phone: '',
+        email: ''
+      });
+      toast({
+        title: "Спасибо за заказ!",
+        description: "Ваш заказ успешно оформлен.",
+      });
+    }, 3000);
   };
 
   if (items.length === 0) {
@@ -264,43 +287,114 @@ const CartPage = () => {
 
       {/* Диалог оплаты */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Оплата по СБП</DialogTitle>
+            <DialogTitle>Оформление заказа</DialogTitle>
+            <DialogDescription>
+              Заполните данные и оплатите заказ через СБП
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 text-center">
-            <div className="bg-muted p-8 rounded-lg">
-              <img 
-                src="/images/sbp_qr_stub.png" 
-                alt="QR-код СБП" 
-                className="w-32 h-32 mx-auto mb-4"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                  if (placeholder) placeholder.style.display = 'block';
-                }}
-              />
-              <div className="hidden">
-                <QrCode className="h-32 w-32 mx-auto mb-4 text-muted-foreground" />
+          
+          {!orderSent ? (
+            <div className="space-y-6">
+              {/* Форма клиента */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="modal-name">Имя *</Label>
+                  <Input
+                    id="modal-name"
+                    value={modalCustomerData.name}
+                    onChange={(e) => handleModalCustomerChange('name', e.target.value)}
+                    placeholder="Введите ваше имя"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="modal-phone">Телефон *</Label>
+                  <Input
+                    id="modal-phone"
+                    type="tel"
+                    value={modalCustomerData.phone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9+()-\s]/g, '');
+                      handleModalCustomerChange('phone', value);
+                    }}
+                    placeholder="+7 (999) 999-99-99"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="modal-email">Email *</Label>
+                  <Input
+                    id="modal-email"
+                    type="email"
+                    value={modalCustomerData.email}
+                    onChange={(e) => handleModalCustomerChange('email', e.target.value)}
+                    placeholder="email@example.com"
+                    required
+                  />
+                </div>
               </div>
-              <p className="text-sm text-muted-foreground">QR-код СБП</p>
+
+              {/* QR-код СБП */}
+              <div className="text-center space-y-4">
+                <div className="bg-muted p-6 rounded-lg">
+                  <img 
+                    src="/images/sbp_qr_stub.png" 
+                    alt="QR-код СБП" 
+                    className="w-24 h-24 mx-auto mb-2"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                      if (placeholder) placeholder.style.display = 'block';
+                    }}
+                  />
+                  <div className="hidden">
+                    <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+                  </div>
+                  <p className="text-xs text-muted-foreground">QR-код СБП</p>
+                </div>
+                
+                <div>
+                  <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Наведите камеру на QR-код или откройте приложение банка
+                  </p>
+                </div>
+                
+                <Badge variant="secondary" className="text-xs">
+                  Комиссия 0% • Мгновенное зачисление
+                </Badge>
+              </div>
+
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={handleOrderSubmit}
+                disabled={!isModalFormValid}
+                size="lg"
+              >
+                Отправить заказ и оплатить
+              </Button>
+              
+              {!isModalFormValid && (
+                <p className="text-sm text-muted-foreground text-center">
+                  Заполните все обязательные поля
+                </p>
+              )}
             </div>
-            <div>
-              <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Наведите камеру телефона на QR-код или откройте приложение банка
-              </p>
+          ) : (
+            <div className="text-center space-y-4 py-8">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <QrCode className="h-8 w-8 text-green-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-2">Спасибо!</h3>
+                <p className="text-muted-foreground">
+                  Ваш заказ принят. Ожидаем оплату через СБП.
+                </p>
+              </div>
             </div>
-            <Badge variant="secondary" className="text-xs">
-              Комиссия 0% • Мгновенное зачисление
-            </Badge>
-            <Button 
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-              onClick={handlePaymentComplete}
-            >
-              Я оплатил
-            </Button>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
