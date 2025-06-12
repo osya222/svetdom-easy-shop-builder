@@ -60,10 +60,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
         
-        <div className="mt-auto space-y-3 pt-4">
+        <div className="mt-auto flex flex-col gap-3 pt-4">
           <Button 
             onClick={() => addItem(product)}
-            className="w-full bg-primary hover:bg-primary/90"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
             size="default"
           >
             <Plus className="h-4 w-4 mr-2" />
