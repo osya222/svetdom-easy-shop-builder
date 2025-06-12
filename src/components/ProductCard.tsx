@@ -25,7 +25,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const compatibleProduct = getCompatibleProduct();
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 h-full">
+    <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
       <div className="relative overflow-hidden">
         <img 
           src={product.image} 
@@ -39,7 +39,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
       </div>
       
-      <CardContent className="p-4 flex flex-col h-full">
+      <CardContent className="p-4 flex flex-col flex-1">
         <h3 className="font-semibold text-lg mb-2 line-clamp-2">{product.name}</h3>
         
         <div className="flex items-center gap-2 mb-2 text-sm text-muted-foreground">
