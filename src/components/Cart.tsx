@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
-import { Minus, Plus, Trash2, ShoppingCart, QrCode } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, QrCode, ExternalLink } from "lucide-react";
 import { targetSums } from "@/data/products";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Link } from "react-router-dom";
 
 const Cart = () => {
   const { 
@@ -121,14 +122,28 @@ const Cart = () => {
             )}
           </div>
 
-          <Button 
-            className="w-full" 
-            size="lg"
-            onClick={() => setShowPayment(true)}
-          >
-            <QrCode className="h-4 w-4 mr-2" />
-            Оплатить через СБП
-          </Button>
+          <div className="space-y-2">
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={() => setShowPayment(true)}
+            >
+              <QrCode className="h-4 w-4 mr-2" />
+              Оплатить через СБП
+            </Button>
+            
+            <Button 
+              asChild
+              variant="outline" 
+              className="w-full"
+              size="sm"
+            >
+              <Link to="/cart">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Перейти в корзину
+              </Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
