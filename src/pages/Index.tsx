@@ -5,6 +5,7 @@ import Benefits from "@/components/Benefits";
 import ProductGrid from "@/components/ProductGrid";
 import ReadySets from "@/components/ReadySets";
 import Cart from "@/components/Cart";
+import MobileCart from "@/components/MobileCart";
 import Footer from "@/components/Footer";
 
 const Index = () => {
@@ -51,6 +52,9 @@ const Index = () => {
       
       {/* Footer */}
       <Footer />
+      
+      {/* Mobile Cart */}
+      <MobileCart />
     </div>
   );
 };
