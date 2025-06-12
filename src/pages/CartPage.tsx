@@ -10,6 +10,7 @@ import { Minus, Plus, Trash2, ShoppingCart, QrCode, ArrowLeft } from "lucide-rea
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import Footer from "@/components/Footer";
 
 const CartPage = () => {
   const { 
@@ -98,6 +99,7 @@ const CartPage = () => {
             </CardContent>
           </Card>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -283,6 +285,7 @@ const CartPage = () => {
             </div>
           </div>
         </div>
+        <Footer />
       </div>
 
       {/* Диалог оплаты */}

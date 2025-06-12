@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground py-8">
@@ -5,24 +7,24 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Левый столбец - ссылки */}
           <div className="space-y-3">
-            <a 
-              href="#" 
+            <Link 
+              to="/payinfo" 
               className="block text-primary-foreground hover:text-primary-foreground/80 underline transition-colors"
             >
               Порядок оплаты
-            </a>
-            <a 
-              href="#" 
+            </Link>
+            <Link 
+              to="/policy" 
               className="block text-primary-foreground hover:text-primary-foreground/80 underline transition-colors"
             >
               Политика конфиденциальности
-            </a>
-            <a 
-              href="#" 
+            </Link>
+            <Link 
+              to="/agreement" 
               className="block text-primary-foreground hover:text-primary-foreground/80 underline transition-colors"
             >
               Публичная оферта
-            </a>
+            </Link>
           </div>
 
           {/* Правый столбец - реквизиты ИП */}
