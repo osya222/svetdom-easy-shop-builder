@@ -6,27 +6,52 @@ import ProductCard from "./ProductCard";
 import { products } from "@/data/products";
 import { Product } from "@/types/product";
 
-const ProductGrid = () => {
+interface ProductGridProps {
+  selectedCategory: string | null;
+}
+
+const ProductGrid = ({ selectedCategory }: ProductGridProps) => {
   const [showAll, setShowAll] = useState(false);
 
+  const filteredProducts = selectedCategory 
+    ? products.filter(product => product.category === selectedCategory)
+    : products;
+
   const displayedProducts = showAll 
-    ? products 
-    : products.slice(0, 20);
+    ? filteredProducts 
+    : filteredProducts.slice(0, 20);
+
+  const getCategoryTitle = () => {
+    if (!selectedCategory) return "Каталог LED ламп E27";
+    switch (selectedCategory) {
+      case "led":
+        return "Обычные LED лампы";
+      case "emergency":
+        return "Аварийные лампы";
+      case "decorative":
+        return "Декоративные лампы";
+      default:
+        return "Каталог LED ламп E27";
+    }
+  };
 
   return (
     <section id="products" className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-8">
-          Каталог LED ламп E27
+          {getCategoryTitle()}
         </h2>
         <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-          50 различных LED ламп с мощностью от 5 до 15 Вт. Цены подобраны так, чтобы легко складывать в ровные суммы.
+          {selectedCategory 
+            ? `Фильтр по категории. Найдено ${filteredProducts.length} товаров.`
+            : "50 различных LED ламп с мощностью от 5 до 15 Вт. Цены подобраны так, чтобы легко складывать в ровные суммы."
+          }
         </p>
 
         {/* Счетчик товаров */}
         <div className="text-center mb-6">
           <Badge variant="secondary" className="text-sm">
-            Показано {displayedProducts.length} из {products.length} ламп
+            Показано {displayedProducts.length} из {filteredProducts.length} товаров
           </Badge>
         </div>
 
@@ -38,14 +63,14 @@ const ProductGrid = () => {
         </div>
 
         {/* Кнопка "Показать еще" */}
-        {!showAll && products.length > 20 && (
+        {!showAll && filteredProducts.length > 20 && (
           <div className="text-center">
             <Button 
               variant="outline" 
               size="lg"
               onClick={() => setShowAll(true)}
             >
-              Показать все {products.length} ламп
+              Показать все {filteredProducts.length} товаров
             </Button>
           </div>
         )}

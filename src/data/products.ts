@@ -26,41 +26,39 @@ export const products: Product[] = [
   { id: 19, name: "Лампа LED E27 10W", power: "10W", lightColor: "Теплый", price: 289, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [20] },
   { id: 20, name: "Лампа LED E27 7W", power: "7W", lightColor: "Холодный", price: 711, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [19] },
   
-  { id: 21, name: "Лампа LED E27 13W", power: "13W", lightColor: "Нейтральный", price: 347, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [22] },
-  { id: 22, name: "Лампа LED E27 11W", power: "11W", lightColor: "Теплый", price: 653, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [21] },
-  { id: 23, name: "Лампа LED E27 8W", power: "8W", lightColor: "Холодный", price: 423, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [24] },
-  { id: 24, name: "Лампа LED E27 14W", power: "14W", lightColor: "Нейтральный", price: 577, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [23] },
-  { id: 25, name: "Лампа LED E27 6W", power: "6W", lightColor: "Теплый", price: 379, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [26] },
+  // Аварийные лампы
+  { id: 21, name: "Аварийная лампа E27 9W", power: "9W", lightColor: "Нейтральный", price: 347, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [22] },
+  { id: 22, name: "Аварийная лампа E27 12W", power: "12W", lightColor: "Теплый", price: 653, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [21] },
+  { id: 23, name: "Аварийная лампа E27 8W", power: "8W", lightColor: "Холодный", price: 423, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [24] },
+  { id: 24, name: "Аварийная лампа E27 14W", power: "14W", lightColor: "Нейтральный", price: 577, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [23] },
+  { id: 25, name: "Аварийная лампа E27 6W", power: "6W", lightColor: "Теплый", price: 379, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [26] },
+  { id: 26, name: "Аварийная лампа E27 15W", power: "15W", lightColor: "Холодный", price: 621, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [25] },
+  { id: 27, name: "Аварийная лампа E27 9W", power: "9W", lightColor: "Нейтральный", price: 743, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [28] },
+  { id: 28, name: "Аварийная лампа E27 12W", power: "12W", lightColor: "Теплый", price: 1257, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "emergency", compatibleWith: [27] },
   
-  { id: 26, name: "Лампа LED E27 15W", power: "15W", lightColor: "Холодный", price: 621, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [25] },
-  { id: 27, name: "Лампа LED E27 9W", power: "9W", lightColor: "Нейтральный", price: 743, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [28] },
-  { id: 28, name: "Лампа LED E27 12W", power: "12W", lightColor: "Теплый", price: 1257, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [27] },
-  { id: 29, name: "Лампа LED E27 5W", power: "5W", lightColor: "Холодный", price: 891, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [30] },
-  { id: 30, name: "Лампа LED E27 10W", power: "10W", lightColor: "Нейтральный", price: 1109, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [29] },
-  
-  { id: 31, name: "Лампа LED E27 7W", power: "7W", lightColor: "Теплый", price: 567, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [32] },
-  { id: 32, name: "Лампа LED E27 11W", power: "11W", lightColor: "Холодный", price: 1433, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [31] },
-  { id: 33, name: "Лампа LED E27 13W", power: "13W", lightColor: "Нейтральный", price: 1347, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [34] },
-  { id: 34, name: "Лампа LED E27 8W", power: "8W", lightColor: "Теплый", price: 1653, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [33] },
-  { id: 35, name: "Лампа LED E27 14W", power: "14W", lightColor: "Холодный", price: 1289, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [36] },
-  
-  { id: 36, name: "Лампа LED E27 6W", power: "6W", lightColor: "Нейтральный", price: 1711, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [35] },
-  { id: 37, name: "Лампа LED E27 15W", power: "15W", lightColor: "Теплый", price: 59, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [38] },
-  { id: 38, name: "Лампа LED E27 9W", power: "9W", lightColor: "Холодный", price: 41, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [37] },
-  { id: 39, name: "Лампа LED E27 12W", power: "12W", lightColor: "Нейтральный", price: 67, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [40] },
-  { id: 40, name: "Лампа LED E27 5W", power: "5W", lightColor: "Теплый", price: 133, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [39] },
-  
-  { id: 41, name: "Лампа LED E27 10W", power: "10W", lightColor: "Холодный", price: 83, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [42] },
-  { id: 42, name: "Лампа LED E27 7W", power: "7W", lightColor: "Нейтральный", price: 117, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [41] },
-  { id: 43, name: "Лампа LED E27 11W", power: "11W", lightColor: "Теплый", price: 91, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [44] },
-  { id: 44, name: "Лампа LED E27 13W", power: "13W", lightColor: "Холодный", price: 209, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [43] },
-  { id: 45, name: "Лампа LED E27 8W", power: "8W", lightColor: "Нейтральный", price: 149, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [46] },
-  
-  { id: 46, name: "Лампа LED E27 14W", power: "14W", lightColor: "Теплый", price: 151, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [45] },
-  { id: 47, name: "Лампа LED E27 6W", power: "6W", lightColor: "Холодный", price: 193, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [48] },
-  { id: 48, name: "Лампа LED E27 15W", power: "15W", lightColor: "Нейтральный", price: 107, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [47] },
-  { id: 49, name: "Лампа LED E27 9W", power: "9W", lightColor: "Теплый", price: 173, image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80", category: "led", compatibleWith: [50] },
-  { id: 50, name: "Лампа LED E27 12W", power: "12W", lightColor: "Холодный", price: 127, image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80", category: "led", compatibleWith: [49] }
+  // Декоративные лампы  
+  { id: 29, name: "Декоративная свеча E27 5W", power: "5W", lightColor: "Теплый", price: 891, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [30] },
+  { id: 30, name: "Декоративный шар E27 10W", power: "10W", lightColor: "Нейтральный", price: 1109, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [29] },
+  { id: 31, name: "Декоративная свеча E27 7W", power: "7W", lightColor: "Теплый", price: 567, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [32] },
+  { id: 32, name: "Декоративный шар E27 11W", power: "11W", lightColor: "Холодный", price: 1433, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [31] },
+  { id: 33, name: "Декоративная свеча E27 13W", power: "13W", lightColor: "Нейтральный", price: 1347, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [34] },
+  { id: 34, name: "Декоративный шар E27 8W", power: "8W", lightColor: "Теплый", price: 1653, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [33] },
+  { id: 35, name: "Декоративная свеча E27 14W", power: "14W", lightColor: "Холодный", price: 1289, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [36] },
+  { id: 36, name: "Декоративный шар E27 6W", power: "6W", lightColor: "Нейтральный", price: 1711, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [35] },
+  { id: 37, name: "Декоративная свеча E27 15W", power: "15W", lightColor: "Теплый", price: 59, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [38] },
+  { id: 38, name: "Декоративный шар E27 9W", power: "9W", lightColor: "Холодный", price: 41, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [37] },
+  { id: 39, name: "Декоративная свеча E27 12W", power: "12W", lightColor: "Нейтральный", price: 67, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [40] },
+  { id: 40, name: "Декоративный шар E27 5W", power: "5W", lightColor: "Теплый", price: 133, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [39] },
+  { id: 41, name: "Декоративная свеча E27 10W", power: "10W", lightColor: "Холодный", price: 83, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [42] },
+  { id: 42, name: "Декоративный шар E27 7W", power: "7W", lightColor: "Нейтральный", price: 117, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [41] },
+  { id: 43, name: "Декоративная свеча E27 11W", power: "11W", lightColor: "Теплый", price: 91, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [44] },
+  { id: 44, name: "Декоративный шар E27 13W", power: "13W", lightColor: "Холодный", price: 209, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [43] },
+  { id: 45, name: "Декоративная свеча E27 8W", power: "8W", lightColor: "Нейтральный", price: 149, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [46] },
+  { id: 46, name: "Декоративный шар E27 14W", power: "14W", lightColor: "Теплый", price: 151, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [45] },
+  { id: 47, name: "Декоративная свеча E27 6W", power: "6W", lightColor: "Холодный", price: 193, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [48] },
+  { id: 48, name: "Декоративный шар E27 15W", power: "15W", lightColor: "Нейтральный", price: 107, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [47] },
+  { id: 49, name: "Декоративная свеча E27 9W", power: "9W", lightColor: "Теплый", price: 173, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [50] },
+  { id: 50, name: "Декоративный шар E27 12W", power: "12W", lightColor: "Холодный", price: 127, image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80", category: "decorative", compatibleWith: [49] }
 ];
 
 export const targetSums = [100, 200, 300, 1000, 2000, 3000, 4000];

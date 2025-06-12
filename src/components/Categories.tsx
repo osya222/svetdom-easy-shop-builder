@@ -8,7 +8,8 @@ const categories = [
     description: "3–12 Вт для дома",
     icon: Lightbulb,
     image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b?auto=format&fit=crop&q=80",
-    count: "20+ товаров"
+    count: "20+ товаров",
+    categoryKey: "led"
   },
   {
     id: 2,
@@ -16,7 +17,8 @@ const categories = [
     description: "С аккумулятором",
     icon: Battery,
     image: "https://images.unsplash.com/photo-1500673922987-e212871fec22?auto=format&fit=crop&q=80",
-    count: "8+ товаров"
+    count: "8+ товаров",
+    categoryKey: "emergency"
   },
   {
     id: 3,
@@ -24,7 +26,8 @@ const categories = [
     description: "Свечи, шары",
     icon: Star,
     image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&q=80",
-    count: "15+ товаров"
+    count: "15+ товаров",
+    categoryKey: "decorative"
   },
   {
     id: 4,
@@ -32,11 +35,17 @@ const categories = [
     description: "1000, 2000, 3000 ₽",
     icon: Package,
     image: "https://images.unsplash.com/photo-1721322800607-8c38375eef04?auto=format&fit=crop&q=80",
-    count: "3 набора"
+    count: "3 набора",
+    categoryKey: "set"
   }
 ];
 
-const Categories = () => {
+interface CategoriesProps {
+  onCategorySelect: (category: string | null) => void;
+  selectedCategory: string | null;
+}
+
+const Categories = ({ onCategorySelect, selectedCategory }: CategoriesProps) => {
   return (
     <section className="py-16 bg-secondary/30">
       <div className="container mx-auto px-4">
@@ -46,8 +55,15 @@ const Categories = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {categories.map((category) => {
             const IconComponent = category.icon;
+            const isSelected = selectedCategory === category.categoryKey;
             return (
-              <Card key={category.id} className="group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden">
+              <Card 
+                key={category.id} 
+                className={`group cursor-pointer hover:shadow-lg transition-all duration-300 overflow-hidden ${
+                  isSelected ? 'ring-2 ring-primary' : ''
+                }`}
+                onClick={() => onCategorySelect(isSelected ? null : category.categoryKey)}
+              >
                 <div className="relative h-48 overflow-hidden">
                   <img 
                     src={category.image} 
