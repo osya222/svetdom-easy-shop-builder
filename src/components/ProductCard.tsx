@@ -60,20 +60,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
         
-        <div className="mt-auto space-y-2">
+        <div className="mt-auto space-y-3 pt-4">
           <Button 
             onClick={() => addItem(product)}
-            className="w-full"
-            size="sm"
+            className="w-full bg-primary hover:bg-primary/90"
+            size="default"
           >
             <Plus className="h-4 w-4 mr-2" />
             Добавить в корзину
           </Button>
           <Button 
             onClick={() => setShowPayment(true)}
-            variant="default"
-            className="w-full"
-            size="sm"
+            variant="outline"
+            className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            size="default"
           >
             <QrCode className="h-4 w-4 mr-2" />
             Купить
