@@ -2,16 +2,20 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { QrCode, Package } from "lucide-react";
+import { QrCode, Package, CreditCard } from "lucide-react";
 import { readySets, products } from "@/data/products";
+import { Link } from "react-router-dom";
 
 const ReadySets = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [selectedSet, setSelectedSet] = useState<any>(null);
-  const [formStep, setFormStep] = useState(1); // 1 = форма, 2 = QR-код
+  const [paymentMethod, setPaymentMethod] = useState('sbp');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [customerData, setCustomerData] = useState({
     name: '',
     phone: '',
@@ -36,17 +40,12 @@ const ReadySets = () => {
                      customerData.email.trim() && 
                      isValidEmail(customerData.email);
 
-  const handleContinue = () => {
-    if (isFormValid) {
-      setFormStep(2);
-    }
-  };
-
   const handleDialogClose = (open: boolean) => {
     setShowPayment(open);
     if (!open) {
       // Сброс состояния при закрытии
-      setFormStep(1);
+      setPaymentMethod('sbp');
+      setAcceptTerms(false);
       setCustomerData({
         name: '',
         phone: '',
@@ -135,19 +134,14 @@ const ReadySets = () => {
       <Dialog open={showPayment} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {formStep === 1 ? "Оформление заказа" : "Оплата по СБП"}
-            </DialogTitle>
+            <DialogTitle>Способ оплаты</DialogTitle>
             <DialogDescription>
-              {formStep === 1 
-                ? "Заполните данные для оформления заказа" 
-                : "Отсканируйте QR-код для оплаты"
-              }
+              Выберите удобный способ оплаты для набора
             </DialogDescription>
           </DialogHeader>
           
-          {formStep === 1 ? (
-            // Форма заказа
+          <div className="space-y-6">
+            {/* Форма клиента */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Имя *</Label>
@@ -189,67 +183,54 @@ const ReadySets = () => {
                   <p className="text-sm text-destructive">Введите корректный email</p>
                 )}
               </div>
-              
-              <Button 
-                onClick={handleContinue}
-                disabled={!isFormValid}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                size="lg"
-              >
-                Продолжить
-              </Button>
-              
-              {!isFormValid && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Заполните все обязательные поля
-                </p>
-              )}
             </div>
-          ) : (
-            // QR-код и детали набора
-            selectedSet && (
-              <div className="space-y-4 text-center">
-                <div className="bg-muted p-6 rounded-lg">
-                  <img 
-                    src="/images/sbp_qr_stub.png" 
-                    alt="QR-код СБП" 
-                    className="w-24 h-24 mx-auto mb-2"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (placeholder) placeholder.style.display = 'block';
-                    }}
-                  />
-                  <div className="hidden">
-                    <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
-                  </div>
-                  <p className="text-xs text-muted-foreground">QR-код СБП</p>
+
+            {/* Выбор способа оплаты */}
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Способ оплаты</Label>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="sbp" id="sbp" />
+                  <Label htmlFor="sbp" className="cursor-pointer">Онлайн-оплата по СБП</Label>
                 </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium">{selectedSet.name}</h4>
-                  <p className="text-lg font-semibold">Сумма к оплате: {selectedSet.price} ₽</p>
-                  <p className="text-sm text-muted-foreground">{getSetProducts(selectedSet.products).length} ламп в комплекте</p>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="vtb" id="vtb" />
+                  <Label htmlFor="vtb" className="cursor-pointer">Платёжная система ВТБ</Label>
                 </div>
-                
-                <p className="text-xs text-muted-foreground">
-                  Наведите камеру телефона на QR-код или откройте приложение банка
-                </p>
-                
-                <Badge variant="secondary" className="text-xs">
-                  Комиссия 0% • Мгновенное зачисление
-                </Badge>
-                
-                <Button 
-                  onClick={() => setFormStep(1)}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Назад к форме
-                </Button>
-              </div>
-            )
-          )}
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="alfa" id="alfa" />
+                  <Label htmlFor="alfa" className="cursor-pointer">Оплата картой (Alfa Bank)</Label>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="yukassa" id="yukassa" />
+                  <Label htmlFor="yukassa" className="cursor-pointer">ЮKassa</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Чекбокс согласия */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="accept-terms"
+                checked={acceptTerms}
+                onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+              />
+              <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
+                Я принимаю{" "}
+                <Link to="/agreement" className="text-primary hover:underline" target="_blank">
+                  условия использования
+                </Link>
+              </Label>
+            </div>
+
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={!isFormValid || !acceptTerms}
+              size="lg"
+            >
+              Подтвердить заказ
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </section>

@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/context/CartContext";
-import { Minus, Plus, Trash2, ShoppingCart, QrCode, ArrowLeft } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, QrCode, ArrowLeft, CreditCard } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
@@ -25,6 +27,8 @@ const CartPage = () => {
   
   const [showPayment, setShowPayment] = useState(false);
   const [orderSent, setOrderSent] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('sbp');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [modalCustomerData, setModalCustomerData] = useState({
     name: '',
     phone: '',
@@ -292,9 +296,9 @@ const CartPage = () => {
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Оформление заказа</DialogTitle>
+            <DialogTitle>Способ оплаты</DialogTitle>
             <DialogDescription>
-              Заполните данные и оплатите заказ через СБП
+              Выберите удобный способ оплаты заказа
             </DialogDescription>
           </DialogHeader>
           
@@ -339,49 +343,145 @@ const CartPage = () => {
                 </div>
               </div>
 
-              {/* QR-код СБП */}
-              <div className="text-center space-y-4">
-                <div className="bg-muted p-6 rounded-lg">
-                  <img 
-                    src="/images/sbp_qr_stub.png" 
-                    alt="QR-код СБП" 
-                    className="w-24 h-24 mx-auto mb-2"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (placeholder) placeholder.style.display = 'block';
-                    }}
-                  />
-                  <div className="hidden">
-                    <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+              {/* Выбор способа оплаты */}
+              <div className="space-y-4">
+                <Label className="text-base font-medium">Способ оплаты</Label>
+                <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                    <RadioGroupItem value="sbp" id="sbp" />
+                    <div className="flex items-center gap-2 flex-1">
+                      <QrCode className="h-5 w-5 text-primary" />
+                      <Label htmlFor="sbp" className="cursor-pointer">Онлайн-оплата по СБП</Label>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">QR-код СБП</p>
-                </div>
-                
-                <div>
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                    <RadioGroupItem value="vtb" id="vtb" />
+                    <div className="flex items-center gap-2 flex-1">
+                      <CreditCard className="h-5 w-5 text-blue-600" />
+                      <Label htmlFor="vtb" className="cursor-pointer">Платёжная система ВТБ</Label>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                    <RadioGroupItem value="alfa" id="alfa" />
+                    <div className="flex items-center gap-2 flex-1">
+                      <CreditCard className="h-5 w-5 text-red-600" />
+                      <Label htmlFor="alfa" className="cursor-pointer">Оплата картой (Alfa Bank)</Label>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                    <RadioGroupItem value="yukassa" id="yukassa" />
+                    <div className="flex items-center gap-2 flex-1">
+                      <CreditCard className="h-5 w-5 text-purple-600" />
+                      <Label htmlFor="yukassa" className="cursor-pointer">ЮKassa</Label>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Отображение платежной информации в зависимости от выбранного метода */}
+              <div className="space-y-4">
+                {paymentMethod === 'sbp' && (
+                  <div className="text-center space-y-4">
+                    <div className="bg-muted p-6 rounded-lg">
+                      <img 
+                        src="/images/sbp_qr_stub.png" 
+                        alt="QR-код СБП" 
+                        className="w-24 h-24 mx-auto mb-2"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (placeholder) placeholder.style.display = 'block';
+                        }}
+                      />
+                      <div className="hidden">
+                        <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">QR-код СБП</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Комиссия 0% • Мгновенное зачисление
+                    </Badge>
+                  </div>
+                )}
+
+                {paymentMethod === 'vtb' && (
+                  <div className="text-center space-y-4">
+                    <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                      <QrCode className="h-24 w-24 mx-auto mb-2 text-blue-600" />
+                      <p className="text-xs text-blue-600">QR-код ВТБ</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                      Безопасная оплата через ВТБ
+                    </Badge>
+                  </div>
+                )}
+
+                {paymentMethod === 'alfa' && (
+                  <div className="text-center space-y-4">
+                    <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                      <CreditCard className="h-24 w-24 mx-auto mb-2 text-red-600" />
+                      <p className="text-xs text-red-600">Оплата картой</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                      Alfa Bank • Защищённая транзакция
+                    </Badge>
+                  </div>
+                )}
+
+                {paymentMethod === 'yukassa' && (
+                  <div className="text-center space-y-4">
+                    <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                      <CreditCard className="h-24 w-24 mx-auto mb-2 text-purple-600" />
+                      <p className="text-xs text-purple-600">ЮKassa</p>
+                    </div>
+                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                      Универсальная платёжная система
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="text-center">
                   <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Наведите камеру на QR-код или откройте приложение банка
+                    {paymentMethod === 'sbp' ? 'Наведите камеру на QR-код или откройте приложение банка' : 
+                     paymentMethod === 'vtb' ? 'Переход на сайт ВТБ для оплаты' :
+                     paymentMethod === 'alfa' ? 'Переход на сайт Alfa Bank для оплаты' :
+                     'Переход на сайт ЮKassa для оплаты'}
                   </p>
                 </div>
-                
-                <Badge variant="secondary" className="text-xs">
-                  Комиссия 0% • Мгновенное зачисление
-                </Badge>
+              </div>
+
+              {/* Чекбокс согласия */}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="accept-terms"
+                  checked={acceptTerms}
+                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                />
+                <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
+                  Я принимаю{" "}
+                  <Link to="/agreement" className="text-primary hover:underline" target="_blank">
+                    условия использования
+                  </Link>
+                  {" "}и{" "}
+                  <Link to="/policy" className="text-primary hover:underline" target="_blank">
+                    политику конфиденциальности
+                  </Link>
+                </Label>
               </div>
 
               <Button 
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
                 onClick={handleOrderSubmit}
-                disabled={!isModalFormValid}
+                disabled={!isModalFormValid || !acceptTerms}
                 size="lg"
               >
-                Отправить заказ и оплатить
+                Подтвердить заказ
               </Button>
               
-              {!isModalFormValid && (
+              {(!isModalFormValid || !acceptTerms) && (
                 <p className="text-sm text-muted-foreground text-center">
-                  Заполните все обязательные поля
+                  {!isModalFormValid ? 'Заполните все обязательные поля' : 'Примите условия для продолжения'}
                 </p>
               )}
             </div>

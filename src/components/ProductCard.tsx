@@ -2,13 +2,16 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Product } from "@/types/product";
 import { useCart } from "@/context/CartContext";
-import { Plus, Zap, Palette, QrCode } from "lucide-react";
+import { Plus, Zap, Palette, QrCode, CreditCard } from "lucide-react";
 import { products } from "@/data/products";
+import { Link } from "react-router-dom";
 
 interface ProductCardProps {
   product: Product;
@@ -17,7 +20,8 @@ interface ProductCardProps {
 const ProductCard = ({ product }: ProductCardProps) => {
   const { addItem } = useCart();
   const [showPayment, setShowPayment] = useState(false);
-  const [formStep, setFormStep] = useState(1); // 1 = форма, 2 = QR-код
+  const [paymentMethod, setPaymentMethod] = useState('sbp');
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [customerData, setCustomerData] = useState({
     name: '',
     phone: '',
@@ -38,17 +42,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
                      customerData.email.trim() && 
                      isValidEmail(customerData.email);
 
-  const handleContinue = () => {
-    if (isFormValid) {
-      setFormStep(2);
-    }
-  };
-
   const handleDialogClose = (open: boolean) => {
     setShowPayment(open);
     if (!open) {
       // Сброс состояния при закрытии
-      setFormStep(1);
+      setPaymentMethod('sbp');
+      setAcceptTerms(false);
       setCustomerData({
         name: '',
         phone: '',
@@ -119,19 +118,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
       <Dialog open={showPayment} onOpenChange={handleDialogClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>
-              {formStep === 1 ? "Оформление заказа" : "Оплата по СБП"}
-            </DialogTitle>
+            <DialogTitle>Способ оплаты</DialogTitle>
             <DialogDescription>
-              {formStep === 1 
-                ? "Заполните данные для оформления заказа" 
-                : "Отсканируйте QR-код для оплаты"
-              }
+              Выберите удобный способ оплаты для {product.name}
             </DialogDescription>
           </DialogHeader>
           
-          {formStep === 1 ? (
-            // Форма заказа
+          <div className="space-y-6">
+            {/* Форма клиента */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Имя *</Label>
@@ -173,64 +167,149 @@ const ProductCard = ({ product }: ProductCardProps) => {
                   <p className="text-sm text-destructive">Введите корректный email</p>
                 )}
               </div>
-              
-              <Button 
-                onClick={handleContinue}
-                disabled={!isFormValid}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                size="lg"
-              >
-                Продолжить
-              </Button>
-              
-              {!isFormValid && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Заполните все обязательные поля
-                </p>
-              )}
             </div>
-          ) : (
-            // QR-код и детали товара
-            <div className="space-y-4 text-center">
-              <div className="bg-muted p-6 rounded-lg">
-                <img 
-                  src="/images/sbp_qr_stub.png" 
-                  alt="QR-код СБП" 
-                  className="w-24 h-24 mx-auto mb-2"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                    if (placeholder) placeholder.style.display = 'block';
-                  }}
-                />
-                <div className="hidden">
-                  <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+
+            {/* Выбор способа оплаты */}
+            <div className="space-y-4">
+              <Label className="text-base font-medium">Способ оплаты</Label>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="sbp" id="sbp" />
+                  <div className="flex items-center gap-2 flex-1">
+                    <QrCode className="h-5 w-5 text-primary" />
+                    <Label htmlFor="sbp" className="cursor-pointer">Онлайн-оплата по СБП</Label>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">QR-код СБП</p>
-              </div>
-              
-              <div className="space-y-2">
-                <h4 className="font-medium">{product.name}</h4>
-                <p className="text-lg font-semibold">Сумма к оплате: {product.price} ₽</p>
-              </div>
-              
-              <p className="text-xs text-muted-foreground">
-                Наведите камеру телефона на QR-код или откройте приложение банка
-              </p>
-              
-              <Badge variant="secondary" className="text-xs">
-                Комиссия 0% • Мгновенное зачисление
-              </Badge>
-              
-              <Button 
-                onClick={() => setFormStep(1)}
-                variant="outline"
-                className="w-full"
-              >
-                Назад к форме
-              </Button>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="vtb" id="vtb" />
+                  <div className="flex items-center gap-2 flex-1">
+                    <CreditCard className="h-5 w-5 text-blue-600" />
+                    <Label htmlFor="vtb" className="cursor-pointer">Платёжная система ВТБ</Label>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="alfa" id="alfa" />
+                  <div className="flex items-center gap-2 flex-1">
+                    <CreditCard className="h-5 w-5 text-red-600" />
+                    <Label htmlFor="alfa" className="cursor-pointer">Оплата картой (Alfa Bank)</Label>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
+                  <RadioGroupItem value="yukassa" id="yukassa" />
+                  <div className="flex items-center gap-2 flex-1">
+                    <CreditCard className="h-5 w-5 text-purple-600" />
+                    <Label htmlFor="yukassa" className="cursor-pointer">ЮKassa</Label>
+                  </div>
+                </div>
+              </RadioGroup>
             </div>
-          )}
+
+            {/* Отображение платежной информации в зависимости от выбранного метода */}
+            <div className="space-y-4">
+              {paymentMethod === 'sbp' && (
+                <div className="text-center space-y-4">
+                  <div className="bg-muted p-6 rounded-lg">
+                    <img 
+                      src="/images/sbp_qr_stub.png" 
+                      alt="QR-код СБП" 
+                      className="w-24 h-24 mx-auto mb-2"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (placeholder) placeholder.style.display = 'block';
+                      }}
+                    />
+                    <div className="hidden">
+                      <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">QR-код СБП</p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    Комиссия 0% • Мгновенное зачисление
+                  </Badge>
+                </div>
+              )}
+
+              {paymentMethod === 'vtb' && (
+                <div className="text-center space-y-4">
+                  <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <QrCode className="h-24 w-24 mx-auto mb-2 text-blue-600" />
+                    <p className="text-xs text-blue-600">QR-код ВТБ</p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-700">
+                    Безопасная оплата через ВТБ
+                  </Badge>
+                </div>
+              )}
+
+              {paymentMethod === 'alfa' && (
+                <div className="text-center space-y-4">
+                  <div className="bg-red-50 p-6 rounded-lg border border-red-200">
+                    <CreditCard className="h-24 w-24 mx-auto mb-2 text-red-600" />
+                    <p className="text-xs text-red-600">Оплата картой</p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs bg-red-100 text-red-700">
+                    Alfa Bank • Защищённая транзакция
+                  </Badge>
+                </div>
+              )}
+
+              {paymentMethod === 'yukassa' && (
+                <div className="text-center space-y-4">
+                  <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                    <CreditCard className="h-24 w-24 mx-auto mb-2 text-purple-600" />
+                    <p className="text-xs text-purple-600">ЮKassa</p>
+                  </div>
+                  <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                    Универсальная платёжная система
+                  </Badge>
+                </div>
+              )}
+
+              <div className="text-center">
+                <p className="text-lg font-semibold">Сумма к оплате: {product.price} ₽</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {paymentMethod === 'sbp' ? 'Наведите камеру на QR-код или откройте приложение банка' : 
+                   paymentMethod === 'vtb' ? 'Переход на сайт ВТБ для оплаты' :
+                   paymentMethod === 'alfa' ? 'Переход на сайт Alfa Bank для оплаты' :
+                   'Переход на сайт ЮKassa для оплаты'}
+                </p>
+              </div>
+            </div>
+
+            {/* Чекбокс согласия */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="accept-terms"
+                checked={acceptTerms}
+                onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+              />
+              <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
+                Я принимаю{" "}
+                <Link to="/agreement" className="text-primary hover:underline" target="_blank">
+                  условия использования
+                </Link>
+                {" "}и{" "}
+                <Link to="/policy" className="text-primary hover:underline" target="_blank">
+                  политику конфиденциальности
+                </Link>
+              </Label>
+            </div>
+
+            <Button 
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={!isFormValid || !acceptTerms}
+              size="lg"
+            >
+              Подтвердить заказ
+            </Button>
+            
+            {(!isFormValid || !acceptTerms) && (
+              <p className="text-sm text-muted-foreground text-center">
+                {!isFormValid ? 'Заполните все обязательные поля' : 'Примите условия для продолжения'}
+              </p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </Card>
