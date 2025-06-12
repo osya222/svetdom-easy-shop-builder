@@ -1,12 +1,46 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useRef } from "react";
+import HeroSection from "@/components/HeroSection";
+import Categories from "@/components/Categories";
+import Benefits from "@/components/Benefits";
+import ProductGrid from "@/components/ProductGrid";
+import Cart from "@/components/Cart";
+import Footer from "@/components/Footer";
 
 const Index = () => {
+  const productsRef = useRef<HTMLDivElement>(null);
+
+  const scrollToProducts = () => {
+    productsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <div className="min-h-screen bg-background">
+      {/* Hero Section */}
+      <HeroSection onScrollToProducts={scrollToProducts} />
+      
+      {/* Categories */}
+      <Categories />
+      
+      {/* Benefits */}
+      <Benefits />
+      
+      {/* Main content with products and cart */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Products grid - 3 columns */}
+          <div className="lg:col-span-3" ref={productsRef}>
+            <ProductGrid />
+          </div>
+          
+          {/* Cart sidebar - 1 column */}
+          <div className="lg:col-span-1">
+            <Cart />
+          </div>
+        </div>
       </div>
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
