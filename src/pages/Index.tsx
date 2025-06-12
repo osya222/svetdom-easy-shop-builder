@@ -25,9 +25,6 @@ const Index = () => {
       {/* Benefits */}
       <Benefits />
       
-      {/* Ready Sets */}
-      <ReadySets />
-      
       {/* Main content with products and cart */}
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -42,6 +39,9 @@ const Index = () => {
           </div>
         </div>
       </div>
+      
+      {/* Ready Sets */}
+      <ReadySets />
       
       {/* Footer */}
       <Footer />
