@@ -71,12 +71,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </Button>
           <Button 
             onClick={() => setShowPayment(true)}
-            variant="outline"
+            variant="default"
             className="w-full"
             size="sm"
           >
             <QrCode className="h-4 w-4 mr-2" />
-            Оплатить по СБП
+            Купить
           </Button>
         </div>
       </CardContent>
