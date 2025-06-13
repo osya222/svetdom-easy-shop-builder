@@ -1,21 +1,26 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Home, Shield, Truck } from "lucide-react";
+import { Home, Lightbulb, Truck, List } from "lucide-react";
 
 const benefits = [
   {
     icon: Home,
     title: "Готовые подборки",
-    description: "«На кухню», «в спальню», «для дачи» — мы всё продумали"
+    description: "«На кухню», «в спальню», «для дачи» — мы собрали удобные комплекты с учётом назначения и выгодной цены."
   },
   {
-    icon: Shield,
-    title: "100% предоплата по СБП",
-    description: "Быстро, безопасно, без комиссии — оплачивайте одним касанием"
+    icon: Lightbulb,
+    title: "Цены от прямых поставщиков",
+    description: "Работаем напрямую с заводами и складами, без наценок и посредников. Это позволяет держать цены ниже среднерыночных."
   },
   {
     icon: Truck,
     title: "Доставка по всей России",
-    description: "Отправляем в день заказа, доставляем до двери"
+    description: "Отправка в течение 1–2 дней после оплаты. Доставляем Почтой России и ТК в любой регион страны."
+  },
+  {
+    icon: List,
+    title: "Ассортимент на любой вкус",
+    description: "50+ моделей в каталоге: мощность от 5 до 15 Вт, теплый и холодный свет, аварийные и декоративные лампы. Вы точно найдёте нужную."
   }
 ];
 
@@ -24,9 +29,9 @@ const Benefits = () => {
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-          Почему выбирают СветДом
+          Почему нам доверяют покупатели
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {benefits.map((benefit, index) => {
             const IconComponent = benefit.icon;
             return (
