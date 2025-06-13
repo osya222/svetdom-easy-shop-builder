@@ -256,6 +256,23 @@ const CartPage = () => {
                       <span>{totalPrice} ₽</span>
                     </div>
 
+                    {totalPrice >= 2000 ? (
+                      <div className="bg-green-50 border border-green-200 p-3 rounded-lg text-center">
+                        <p className="text-sm font-medium text-green-800">
+                          🎉 Бесплатная доставка включена!
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-blue-50 border border-blue-200 p-3 rounded-lg text-center">
+                        <p className="text-sm font-medium text-blue-800">
+                          Бесплатная доставка от 2000 ₽
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Добавьте ещё {2000 - totalPrice} ₽ для бесплатной доставки
+                        </p>
+                      </div>
+                    )}
+
                     <div className="space-y-3">
                       <Button 
                         className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"

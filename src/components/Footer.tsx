@@ -14,6 +14,12 @@ const Footer = () => {
               Порядок оплаты
             </Link>
             <Link 
+              to="/delivery" 
+              className="block text-primary-foreground hover:text-primary-foreground/80 underline transition-colors"
+            >
+              Условия доставки
+            </Link>
+            <Link 
               to="/policy" 
               className="block text-primary-foreground hover:text-primary-foreground/80 underline transition-colors"
             >

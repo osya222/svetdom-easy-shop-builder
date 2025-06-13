@@ -92,29 +92,6 @@ const Cart = () => {
               <span className="text-lg font-bold">{totalPrice} ₽</span>
             </div>
 
-            {/* Подсказки до ровных сумм */}
-            {nextTargetSums.length > 0 && (
-              <div className="space-y-2">
-                {nextTargetSums.map(targetSum => {
-                  const suggestion = getSuggestionToRoundSum(targetSum);
-                  if (!suggestion) return null;
-                  
-                  return (
-                    <div key={targetSum} className="bg-primary/10 p-2 rounded text-xs">
-                      <p className="font-medium">До {targetSum} ₽:</p>
-                      <p className="text-muted-foreground">
-                        Добавьте ещё {suggestion.needed} ₽
-                      </p>
-                      {suggestion.suggestions.length > 0 && (
-                        <p className="text-primary font-medium">
-                          Например: {suggestion.suggestions[0].name}
-                        </p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           <div className="space-y-2">

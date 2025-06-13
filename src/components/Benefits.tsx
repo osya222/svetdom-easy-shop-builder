@@ -1,12 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Calculator, Home, Shield, Truck } from "lucide-react";
+import { Home, Shield, Truck } from "lucide-react";
 
 const benefits = [
-  {
-    icon: Calculator,
-    title: "Цены складываются в ровные суммы",
-    description: "48 ₽ + 52 ₽ = 100 ₽. Легко считать, удобно платить"
-  },
   {
     icon: Home,
     title: "Готовые подборки",

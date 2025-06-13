@@ -42,13 +42,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <span>{product.lightColor}</span>
         </div>
 
-        {compatibleProduct && (
-          <div className="bg-secondary/50 p-2 rounded-md mb-4 text-xs">
-            <p className="text-muted-foreground">
-              Добавь к лампе №{compatibleProduct.id} — получишь {product.price + compatibleProduct.price} ₽
-            </p>
-          </div>
-        )}
         
         <div className="mt-auto pt-4">
           <Button 
