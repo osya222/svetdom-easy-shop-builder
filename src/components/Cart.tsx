@@ -1,12 +1,9 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/context/CartContext";
-import { Minus, Plus, Trash2, ShoppingCart, QrCode, ExternalLink } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart, ShoppingBag, ExternalLink } from "lucide-react";
 import { targetSums } from "@/data/products";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Link } from "react-router-dom";
 
 const Cart = () => {
@@ -19,8 +16,6 @@ const Cart = () => {
     totalItems,
     getSuggestionToRoundSum 
   } = useCart();
-  
-  const [showPayment, setShowPayment] = useState(false);
 
   if (items.length === 0) {
     return (
@@ -124,12 +119,14 @@ const Cart = () => {
 
           <div className="space-y-2">
             <Button 
+              asChild
               className="w-full" 
               size="lg"
-              onClick={() => setShowPayment(true)}
             >
-              <QrCode className="h-4 w-4 mr-2" />
-              Оплатить через СБП
+              <Link to="/cart">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Перейти к оформлению
+              </Link>
             </Button>
             
             <Button 
@@ -140,36 +137,12 @@ const Cart = () => {
             >
               <Link to="/cart">
                 <ExternalLink className="h-4 w-4 mr-2" />
-                Перейти в корзину
+                Смотреть корзину
               </Link>
             </Button>
           </div>
         </CardContent>
       </Card>
-
-      {/* Диалог оплаты */}
-      <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Оплата через СБП</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 text-center">
-            <div className="bg-muted p-8 rounded-lg">
-              <QrCode className="h-24 w-24 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">QR-код СБП здесь</p>
-            </div>
-            <div>
-              <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Наведите камеру телефона на QR-код или откройте приложение банка
-              </p>
-            </div>
-            <Badge variant="secondary" className="text-xs">
-              Комиссия 0% • Мгновенное зачисление
-            </Badge>
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

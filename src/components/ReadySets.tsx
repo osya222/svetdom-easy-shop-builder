@@ -1,57 +1,20 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { QrCode, Package, CreditCard } from "lucide-react";
+import { Package, Plus } from "lucide-react";
 import { readySets, products } from "@/data/products";
-import { Link } from "react-router-dom";
+import { useCart } from "@/context/CartContext";
 
 const ReadySets = () => {
-  const [showPayment, setShowPayment] = useState(false);
-  const [selectedSet, setSelectedSet] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState('sbp');
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [customerData, setCustomerData] = useState({
-    name: '',
-    phone: '',
-    email: ''
-  });
+  const { addItem } = useCart();
 
-  const handlePayment = (set: any) => {
-    setSelectedSet(set);
-    setShowPayment(true);
-  };
-
-  const handleCustomerChange = (field: string, value: string) => {
-    setCustomerData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const isValidEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const isFormValid = customerData.name.trim() && 
-                     customerData.phone.trim() && 
-                     customerData.email.trim() && 
-                     isValidEmail(customerData.email);
-
-  const handleDialogClose = (open: boolean) => {
-    setShowPayment(open);
-    if (!open) {
-      // Сброс состояния при закрытии
-      setPaymentMethod('sbp');
-      setAcceptTerms(false);
-      setCustomerData({
-        name: '',
-        phone: '',
-        email: ''
-      });
-    }
+  const addSetToCart = (set: any) => {
+    const setProducts = getSetProducts(set.products);
+    setProducts.forEach(product => {
+      if (product) {
+        addItem(product);
+      }
+    });
   };
 
   const getSetProducts = (productIds: number[]) => {
@@ -116,12 +79,12 @@ const ReadySets = () => {
                   </div>
                   
                   <Button 
-                    onClick={() => handlePayment(set)}
+                    onClick={() => addSetToCart(set)}
                     className="w-full"
                     size="lg"
                   >
-                    <QrCode className="h-4 w-4 mr-2" />
-                    Оплатить весь набор по СБП
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить набор в корзину
                   </Button>
                 </CardContent>
               </Card>
@@ -129,110 +92,6 @@ const ReadySets = () => {
           })}
         </div>
       </div>
-      
-      {/* Диалог оплаты набора */}
-      <Dialog open={showPayment} onOpenChange={handleDialogClose}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Способ оплаты</DialogTitle>
-            <DialogDescription>
-              Выберите удобный способ оплаты для набора
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Форма клиента */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Имя *</Label>
-                <Input
-                  id="name"
-                  value={customerData.name}
-                  onChange={(e) => handleCustomerChange('name', e.target.value)}
-                  placeholder="Введите ваше имя"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Телефон *</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={customerData.phone}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9+()-\s]/g, '');
-                    handleCustomerChange('phone', value);
-                  }}
-                  placeholder="+7 (999) 999-99-99"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={customerData.email}
-                  onChange={(e) => handleCustomerChange('email', e.target.value)}
-                  placeholder="email@example.com"
-                  required
-                />
-                {customerData.email && !isValidEmail(customerData.email) && (
-                  <p className="text-sm text-destructive">Введите корректный email</p>
-                )}
-              </div>
-            </div>
-
-            {/* Выбор способа оплаты */}
-            <div className="space-y-4">
-              <Label className="text-base font-medium">Способ оплаты</Label>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-3">
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
-                  <RadioGroupItem value="sbp" id="sbp" />
-                  <Label htmlFor="sbp" className="cursor-pointer">Онлайн-оплата по СБП</Label>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
-                  <RadioGroupItem value="vtb" id="vtb" />
-                  <Label htmlFor="vtb" className="cursor-pointer">Платёжная система ВТБ</Label>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
-                  <RadioGroupItem value="alfa" id="alfa" />
-                  <Label htmlFor="alfa" className="cursor-pointer">Оплата картой (Alfa Bank)</Label>
-                </div>
-                <div className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-secondary/50 transition-colors">
-                  <RadioGroupItem value="yukassa" id="yukassa" />
-                  <Label htmlFor="yukassa" className="cursor-pointer">ЮKassa</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Чекбокс согласия */}
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="accept-terms"
-                checked={acceptTerms}
-                onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-              />
-              <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
-                Я принимаю{" "}
-                <Link to="/agreement" className="text-primary hover:underline" target="_blank">
-                  условия использования
-                </Link>
-              </Label>
-            </div>
-
-            <Button 
-              className="w-full bg-green-600 hover:bg-green-700 text-white"
-              disabled={!isFormValid || !acceptTerms}
-              size="lg"
-            >
-              Подтвердить заказ
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </section>
   );
 };
