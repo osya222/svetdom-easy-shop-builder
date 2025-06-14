@@ -39,9 +39,18 @@ const Footer = () => {
             <p className="font-semibold">ШВЕЦОВ ПАВЕЛ ПАВЛОВИЧ</p>
             <p>ИНН 772879021573</p>
             <p>ОГРНИП 325508100251081</p>
-            <p>МОСКВА, УЛ. БЕРЕЗОВАЯ АЛЛЕЯ, Д. 5, К. 400</p>
-            <p>info@routesale.ru</p>
-            <p>+7 (926) 138-83-80</p>
+            <p>шоссе Пригородное, д. 12, кв./оф. кв. 433,</p>
+            <p>Московская область, г. Видное</p>
+            <p>
+              <a href="mailto:shangar3077@gmail.com" className="hover:underline">
+                shangar3077@gmail.com
+              </a>
+            </p>
+            <p>
+              <a href="tel:+79030033148" className="hover:underline">
+                +7 903 003-31-48
+              </a>
+            </p>
           </div>
         </div>
       </div>

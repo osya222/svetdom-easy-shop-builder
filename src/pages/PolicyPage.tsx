@@ -47,11 +47,15 @@ const PolicyPage = () => {
           <h2 className="text-2xl font-semibold mt-8 mb-4">6. Контакт для связи</h2>
           <div className="space-y-2">
             <p>
-              <a href="mailto:info@routesale.ru" className="text-primary hover:underline">
-                info@routesale.ru
+              <a href="mailto:shangar3077@gmail.com" className="text-primary hover:underline">
+                shangar3077@gmail.com
               </a>
             </p>
-            <p>+7 (926) 138-83-80</p>
+            <p>
+              <a href="tel:+79030033148" className="text-primary hover:underline">
+                +7 903 003-31-48
+              </a>
+            </p>
           </div>
         </div>
       </div>
