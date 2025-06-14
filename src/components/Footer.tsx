@@ -36,9 +36,9 @@ const Footer = () => {
           {/* Правый столбец - реквизиты ИП */}
           <div className="text-right space-y-1 text-sm md:text-left md:ml-auto md:max-w-xs">
             <p className="font-semibold">ИНДИВИДУАЛЬНЫЙ ПРЕДПРИНИМАТЕЛЬ</p>
-            <p className="font-semibold">АНДРИАНОВ ИЛЬЯ ОЛЕГОВИЧ</p>
-            <p>ИНН 771507425528</p>
-            <p>ОГРН 325774600045387</p>
+            <p className="font-semibold">ШВЕЦОВ ПАВЕЛ ПАВЛОВИЧ</p>
+            <p>ИНН 772879021573</p>
+            <p>ОГРНИП 325508100251081</p>
             <p>МОСКВА, УЛ. БЕРЕЗОВАЯ АЛЛЕЯ, Д. 5, К. 400</p>
             <p>info@routesale.ru</p>
             <p>+7 (926) 138-83-80</p>
