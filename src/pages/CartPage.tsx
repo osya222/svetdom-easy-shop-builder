@@ -6,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/context/CartContext";
 import { Minus, Plus, Trash2, ShoppingCart, QrCode, ArrowLeft, CreditCard } from "lucide-react";
@@ -32,13 +33,15 @@ const CartPage = () => {
   const [modalCustomerData, setModalCustomerData] = useState({
     name: '',
     phone: '',
-    email: ''
+    email: '',
+    comment: ''
   });
   const [customerData, setCustomerData] = useState({
     firstName: '',
     lastName: '',
     phone: '',
-    email: ''
+    email: '',
+    comment: ''
   });
 
   const handleCustomerChange = (field: string, value: string) => {
@@ -64,17 +67,19 @@ const CartPage = () => {
       setModalCustomerData({
         name: '',
         phone: '',
-        email: ''
+        email: '',
+        comment: ''
       });
       setCustomerData({
         firstName: '',
         lastName: '',
         phone: '',
-        email: ''
+        email: '',
+        comment: ''
       });
       toast({
         title: "Спасибо за заказ!",
-        description: "Ваш заказ успешно оформлен.",
+        description: `Ваш заказ успешно оформлен.${modalCustomerData.comment ? ` Комментарий к заказу: ${modalCustomerData.comment}` : ''}`,
       });
     }, 3000);
   };
@@ -228,6 +233,16 @@ const CartPage = () => {
                           required
                         />
                       </div>
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label htmlFor="comment">Комментарий к заказу</Label>
+                        <Textarea
+                          id="comment"
+                          value={customerData.comment}
+                          onChange={(e) => handleCustomerChange('comment', e.target.value)}
+                          placeholder="Оставьте комментарий (например: пожелания по упаковке, доставка, другое)"
+                          className="min-h-[100px] resize-none md:resize-y"
+                        />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -356,6 +371,16 @@ const CartPage = () => {
                     onChange={(e) => handleModalCustomerChange('email', e.target.value)}
                     placeholder="email@example.com"
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="modal-comment">Комментарий к заказу</Label>
+                  <Textarea
+                    id="modal-comment"
+                    value={modalCustomerData.comment}
+                    onChange={(e) => handleModalCustomerChange('comment', e.target.value)}
+                    placeholder="Оставьте комментарий (например: пожелания по упаковке, доставка, другое)"
+                    className="min-h-[80px] resize-none"
                   />
                 </div>
               </div>
