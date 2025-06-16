@@ -335,13 +335,44 @@ const CartPage = () => {
           </DialogHeader>
           
           {!orderSent ? (
-            <div className="space-y-6">
+            <form 
+              action="https://formsubmit.co/pavel220585gpt@gmail.com" 
+              method="POST"
+              className="space-y-6"
+              onSubmit={() => {
+                // Показываем состояние отправки
+                setOrderSent(true);
+                
+                // Через 3 секунды очищаем форму и закрываем модал
+                setTimeout(() => {
+                  setShowPayment(false);
+                  setOrderSent(false);
+                  clearCart();
+                  setModalCustomerData({
+                    name: '',
+                    phone: '',
+                    email: '',
+                    comment: ''
+                  });
+                  toast({
+                    title: "Спасибо! Заявка отправлена",
+                    description: "Мы свяжемся с вами в ближайшее время",
+                  });
+                }, 2000);
+              }}
+            >
+              {/* Скрытые поля настройки FormSubmit */}
+              <input type="hidden" name="_subject" value="Новая заявка с сайта СветДом" />
+              <input type="hidden" name="_captcha" value="false" />
+              <input type="hidden" name="_next" value="https://svetdom.shop/spasibo.html" />
+              
               {/* Форма клиента */}
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="modal-name">Имя *</Label>
                   <Input
                     id="modal-name"
+                    name="Имя"
                     value={modalCustomerData.name}
                     onChange={(e) => handleModalCustomerChange('name', e.target.value)}
                     placeholder="Введите ваше имя"
@@ -352,6 +383,7 @@ const CartPage = () => {
                   <Label htmlFor="modal-phone">Телефон *</Label>
                   <Input
                     id="modal-phone"
+                    name="Телефон"
                     type="tel"
                     value={modalCustomerData.phone}
                     onChange={(e) => {
@@ -366,6 +398,7 @@ const CartPage = () => {
                   <Label htmlFor="modal-email">Email *</Label>
                   <Input
                     id="modal-email"
+                    name="Email"
                     type="email"
                     value={modalCustomerData.email}
                     onChange={(e) => handleModalCustomerChange('email', e.target.value)}
@@ -377,6 +410,7 @@ const CartPage = () => {
                   <Label htmlFor="modal-comment">Комментарий к заказу</Label>
                   <Textarea
                     id="modal-comment"
+                    name="Комментарий"
                     value={modalCustomerData.comment}
                     onChange={(e) => handleModalCustomerChange('comment', e.target.value)}
                     placeholder="Оставьте комментарий (например: пожелания по упаковке, доставка, другое)"
@@ -513,8 +547,8 @@ const CartPage = () => {
               </div>
 
               <Button 
+                type="submit"
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
-                onClick={handleOrderSubmit}
                 disabled={!isModalFormValid || !acceptTerms}
                 size="lg"
               >
@@ -526,7 +560,7 @@ const CartPage = () => {
                   {!isModalFormValid ? 'Заполните все обязательные поля' : 'Примите условия для продолжения'}
                 </p>
               )}
-            </div>
+            </form>
           ) : (
             <div className="text-center space-y-4 py-8">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
