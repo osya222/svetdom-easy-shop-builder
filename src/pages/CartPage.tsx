@@ -286,7 +286,7 @@ const CartPage = () => {
 
       {/* Диалог оплаты */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Оплата по СБП</DialogTitle>
             <DialogDescription>
@@ -295,48 +295,10 @@ const CartPage = () => {
           </DialogHeader>
           
           {!orderSent ? (
-            <form 
-              action="https://formsubmit.co/pavel220585gpt@gmail.com" 
-              method="POST"
-              className="space-y-6"
-              onSubmit={() => {
-                setOrderSent(true);
-                setTimeout(() => {
-                  setShowPayment(false);
-                  setOrderSent(false);
-                  clearCart();
-                  setCustomerData({
-                    firstName: '',
-                    lastName: '',
-                    phone: '',
-                    email: '',
-                    comment: ''
-                  });
-                  toast({
-                    title: "Спасибо! Заявка отправлена",
-                    description: "Мы свяжемся с вами в ближайшее время",
-                  });
-                }, 2000);
-              }}
-            >
-              {/* Скрытые поля настройки FormSubmit */}
-              <input type="hidden" name="_subject" value="Новая заявка с сайта СветДом" />
-              <input type="hidden" name="_captcha" value="false" />
-              <input type="hidden" name="_next" value="https://svetdom.shop/spasibo.html" />
-              
-              {/* Скрытые поля с данными заказа */}
-              <input type="hidden" name="Имя" value={`${customerData.firstName} ${customerData.lastName}`} />
-              <input type="hidden" name="Телефон" value={customerData.phone} />
-              <input type="hidden" name="Email" value={customerData.email} />
-              <input type="hidden" name="Комментарий" value={customerData.comment} />
-              <input type="hidden" name="Способ оплаты" value="Онлайн по СБП" />
-              <input type="hidden" name="Сумма заказа" value={`${totalPrice} ₽`} />
-              <input type="hidden" name="Товары" value={items.map(item => 
-                `${item.product.name} × ${item.quantity} = ${item.product.price * item.quantity} ₽`
-              ).join('; ')} />
-              
-              {/* Резюме заказа */}
-              <div className="space-y-4">
+            <div className="flex flex-col flex-1 min-h-0">
+              {/* Прокручиваемое содержимое */}
+              <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+                {/* Резюме заказа */}
                 <div className="bg-secondary/20 p-4 rounded-lg space-y-2">
                   <h4 className="font-medium">Данные покупателя:</h4>
                   <p className="text-sm">{customerData.firstName} {customerData.lastName}</p>
@@ -346,73 +308,116 @@ const CartPage = () => {
                     <p className="text-sm text-muted-foreground">Комментарий: {customerData.comment}</p>
                   )}
                 </div>
-              </div>
 
-              {/* QR-код СБП */}
-              <div className="text-center space-y-4">
-                <div className="bg-muted p-6 rounded-lg">
-                  <img 
-                    src="/images/sbp_qr_stub.png" 
-                    alt="QR-код СБП" 
-                    className="w-24 h-24 mx-auto mb-2"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                      if (placeholder) placeholder.style.display = 'block';
-                    }}
-                  />
-                  <div className="hidden">
-                    <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+                {/* QR-код СБП */}
+                <div className="text-center space-y-4">
+                  <div className="bg-muted p-6 rounded-lg">
+                    <img 
+                      src="/images/sbp_qr_stub.png" 
+                      alt="QR-код СБП" 
+                      className="w-24 h-24 mx-auto mb-2"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (placeholder) placeholder.style.display = 'block';
+                      }}
+                    />
+                    <div className="hidden">
+                      <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
+                    </div>
+                    <p className="text-xs text-muted-foreground">QR-код СБП</p>
                   </div>
-                  <p className="text-xs text-muted-foreground">QR-код СБП</p>
+                  <Badge variant="secondary" className="text-xs">
+                    Комиссия 0% • Мгновенное зачисление
+                  </Badge>
+                  
+                  <div className="text-center">
+                    <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Наведите камеру на QR-код или откройте приложение банка
+                    </p>
+                  </div>
                 </div>
-                <Badge variant="secondary" className="text-xs">
-                  Комиссия 0% • Мгновенное зачисление
-                </Badge>
-                
-                <div className="text-center">
-                  <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Наведите камеру на QR-код или откройте приложение банка
-                  </p>
+
+                {/* Чекбокс согласия */}
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="accept-terms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                  />
+                  <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
+                    Я принимаю{" "}
+                    <Link to="/agreement" className="text-primary hover:underline" target="_blank">
+                      условия использования
+                    </Link>
+                    {" "}и{" "}
+                    <Link to="/policy" className="text-primary hover:underline" target="_blank">
+                      политику конфиденциальности
+                    </Link>
+                  </Label>
                 </div>
               </div>
 
-              {/* Чекбокс согласия */}
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="accept-terms"
-                  checked={acceptTerms}
-                  onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
-                />
-                <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
-                  Я принимаю{" "}
-                  <Link to="/agreement" className="text-primary hover:underline" target="_blank">
-                    условия использования
-                  </Link>
-                  {" "}и{" "}
-                  <Link to="/policy" className="text-primary hover:underline" target="_blank">
-                    политику конфиденциальности
-                  </Link>
-                </Label>
+              {/* Фиксированная кнопка снизу */}
+              <div className="mt-4 pt-4 border-t">
+                <form 
+                  action="https://formsubmit.co/pavel220585gpt@gmail.com" 
+                  method="POST"
+                  onSubmit={() => {
+                    setOrderSent(true);
+                    setTimeout(() => {
+                      setShowPayment(false);
+                      setOrderSent(false);
+                      clearCart();
+                      setCustomerData({
+                        firstName: '',
+                        lastName: '',
+                        phone: '',
+                        email: '',
+                        comment: ''
+                      });
+                      toast({
+                        title: "Спасибо! Заявка отправлена",
+                        description: "Мы свяжемся с вами в ближайшее время",
+                      });
+                    }, 2000);
+                  }}
+                >
+                  {/* Скрытые поля настройки FormSubmit */}
+                  <input type="hidden" name="_subject" value="Новая заявка с сайта СветДом" />
+                  <input type="hidden" name="_captcha" value="false" />
+                  <input type="hidden" name="_next" value="https://svetdom.shop/spasibo.html" />
+                  
+                  {/* Скрытые поля с данными заказа */}
+                  <input type="hidden" name="Имя" value={`${customerData.firstName} ${customerData.lastName}`} />
+                  <input type="hidden" name="Телефон" value={customerData.phone} />
+                  <input type="hidden" name="Email" value={customerData.email} />
+                  <input type="hidden" name="Комментарий" value={customerData.comment} />
+                  <input type="hidden" name="Способ оплаты" value="Онлайн по СБП" />
+                  <input type="hidden" name="Сумма заказа" value={`${totalPrice} ₽`} />
+                  <input type="hidden" name="Товары" value={items.map(item => 
+                    `${item.product.name} × ${item.quantity} = ${item.product.price * item.quantity} ₽`
+                  ).join('; ')} />
+                  
+                  <Button 
+                    type="submit"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white"
+                    disabled={!acceptTerms}
+                    size="lg"
+                  >
+                    <QrCode className="h-5 w-5 mr-2" />
+                    Оплатить через СБП
+                  </Button>
+                  
+                  {!acceptTerms && (
+                    <p className="text-sm text-muted-foreground text-center mt-2">
+                      Примите условия для продолжения
+                    </p>
+                  )}
+                </form>
               </div>
-
-              <Button 
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                disabled={!acceptTerms}
-                size="lg"
-              >
-                <QrCode className="h-5 w-5 mr-2" />
-                Оплатить через СБП
-              </Button>
-              
-              {!acceptTerms && (
-                <p className="text-sm text-muted-foreground text-center">
-                  Примите условия для продолжения
-                </p>
-              )}
-            </form>
+            </div>
           ) : (
             <div className="text-center space-y-4 py-8">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
