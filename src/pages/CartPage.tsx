@@ -364,11 +364,29 @@ const CartPage = () => {
                 <form 
                   action="https://formsubmit.co/pavel220585gpt@gmail.com" 
                   method="POST"
+                  onSubmit={() => {
+                    setOrderSent(true);
+                    setTimeout(() => {
+                      setShowPayment(false);
+                      setOrderSent(false);
+                      clearCart();
+                      setCustomerData({
+                        firstName: '',
+                        lastName: '',
+                        phone: '',
+                        email: '',
+                        comment: ''
+                      });
+                      toast({
+                        title: "Спасибо! Заявка отправлена",
+                        description: "Мы свяжемся с вами в ближайшее время",
+                      });
+                    }, 2000);
+                  }}
                 >
                   {/* Скрытые поля настройки FormSubmit */}
                   <input type="hidden" name="_subject" value="Новая заявка с сайта СветДом" />
                   <input type="hidden" name="_captcha" value="false" />
-                  <input type="hidden" name="_next" value="https://svetdom.shop/spasibo.html" />
                   
                   {/* Скрытые поля с данными заказа */}
                   <input type="hidden" name="Имя" value={`${customerData.firstName} ${customerData.lastName}`} />
