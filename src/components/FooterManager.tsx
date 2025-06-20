@@ -12,29 +12,31 @@ const FooterManager = () => {
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const [formData, setFormData] = useState(() => ({
-    business_name: settings?.business_name || '',
-    inn: settings?.inn || '',
-    ogrnip: settings?.ogrnip || '',
-    address_line_1: settings?.address_line_1 || '',
-    address_line_2: settings?.address_line_2 || '',
-    email: settings?.email || '',
-    phone: settings?.phone || '',
-    payment_text: settings?.payment_text || 'Порядок оплаты',
-    delivery_text: settings?.delivery_text || 'Условия доставки',
-    policy_text: settings?.policy_text || 'Политика конфиденциальности',
-    agreement_text: settings?.agreement_text || 'Публичная оферта',
-    admin_text: settings?.admin_text || 'Управление товарами',
-    payment_link: settings?.payment_link || '/payinfo',
-    delivery_link: settings?.delivery_link || '/delivery',
-    policy_link: settings?.policy_link || '/policy',
-    agreement_link: settings?.agreement_link || '/agreement',
-    admin_link: settings?.admin_link || '/admin'
-  }));
+  const [formData, setFormData] = useState({
+    business_name: '',
+    inn: '',
+    ogrnip: '',
+    address_line_1: '',
+    address_line_2: '',
+    email: '',
+    phone: '',
+    payment_text: 'Порядок оплаты',
+    delivery_text: 'Условия доставки',
+    policy_text: 'Политика конфиденциальности',
+    agreement_text: 'Публичная оферта',
+    admin_text: 'Управление товарами',
+    payment_link: '/payinfo',
+    delivery_link: '/delivery',
+    policy_link: '/policy',
+    agreement_link: '/agreement',
+    admin_link: '/admin'
+  });
 
   // Update form data when settings load
   useEffect(() => {
+    console.log('FooterManager: Settings changed:', settings);
     if (settings) {
+      console.log('FooterManager: Updating form data with settings');
       setFormData({
         business_name: settings.business_name || '',
         inn: settings.inn || '',

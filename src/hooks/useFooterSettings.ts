@@ -28,6 +28,7 @@ export const useFooterSettings = () => {
 
   const fetchSettings = async () => {
     try {
+      console.log('Fetching footer settings...');
       const { data, error } = await supabase
         .from('footer_settings')
         .select('*')
@@ -35,9 +36,11 @@ export const useFooterSettings = () => {
         .maybeSingle();
 
       if (error) {
+        console.error('Error fetching footer settings:', error);
         throw error;
       }
 
+      console.log('Footer settings loaded:', data);
       setSettings(data);
     } catch (error) {
       console.error('Error fetching footer settings:', error);
