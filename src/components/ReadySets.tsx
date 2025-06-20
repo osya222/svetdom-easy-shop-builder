@@ -1,15 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus } from "lucide-react";
-import { readySets, products } from "@/data/products";
+import { Package, Plus, Loader } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useReadySets } from "@/hooks/useReadySets";
+import { useProducts } from "@/hooks/useProducts";
 
 const ReadySets = () => {
   const { addItem } = useCart();
+  const { readySets, loading: setsLoading } = useReadySets();
+  const { products, loading: productsLoading } = useProducts();
 
   const addSetToCart = (set: any) => {
-    const setProducts = getSetProducts(set.products);
+    const setProducts = getSetProducts(set.product_ids || set.products);
     setProducts.forEach(product => {
       if (product) {
         addItem(product);
@@ -20,6 +23,18 @@ const ReadySets = () => {
   const getSetProducts = (productIds: number[]) => {
     return productIds.map(id => products.find(p => p.id === id)).filter(Boolean);
   };
+
+  if (setsLoading || productsLoading) {
+    return (
+      <section className="py-16 bg-secondary/20">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center items-center py-8">
+            <Loader className="h-8 w-8 animate-spin" />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 bg-secondary/20">
@@ -33,7 +48,7 @@ const ReadySets = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {readySets.map((set) => {
-            const setProducts = getSetProducts(set.products);
+            const setProducts = getSetProducts(set.product_ids);
             
             return (
               <Card key={set.id} className="group hover:shadow-lg transition-all duration-300">

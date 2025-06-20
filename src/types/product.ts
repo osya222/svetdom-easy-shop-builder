@@ -19,8 +19,10 @@ export interface ReadySet {
   id: number;
   name: string;
   price: number;
-  products: number[];
+  product_ids: number[];
   description: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CartContextType {

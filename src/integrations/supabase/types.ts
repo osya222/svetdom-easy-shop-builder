@@ -123,6 +123,36 @@ export type Database = {
         }
         Relationships: []
       }
+      ready_sets: {
+        Row: {
+          created_at: string
+          description: string
+          id: number
+          name: string
+          price: number
+          product_ids: number[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: number
+          name: string
+          price: number
+          product_ids: number[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: number
+          name?: string
+          price?: number
+          product_ids?: number[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
