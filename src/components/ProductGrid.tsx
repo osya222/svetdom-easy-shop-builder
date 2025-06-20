@@ -3,8 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import ProductCard from "./ProductCard";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import { Product } from "@/types/product";
+import { Loader } from "lucide-react";
 
 interface ProductGridProps {
   selectedCategory: string | null;
@@ -12,6 +13,7 @@ interface ProductGridProps {
 
 const ProductGrid = ({ selectedCategory }: ProductGridProps) => {
   const [showAll, setShowAll] = useState(false);
+  const { products, loading } = useProducts();
 
   const filteredProducts = selectedCategory 
     ? products.filter(product => product.category === selectedCategory)
@@ -36,6 +38,18 @@ const ProductGrid = ({ selectedCategory }: ProductGridProps) => {
         return "Каталог LED ламп E27";
     }
   };
+
+  if (loading) {
+    return (
+      <section id="products" className="py-16 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-center items-center py-8">
+            <Loader className="h-8 w-8 animate-spin" />
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="products" className="py-16 bg-background">

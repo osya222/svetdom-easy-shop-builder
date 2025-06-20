@@ -31,6 +31,12 @@ const Footer = () => {
             >
               Публичная оферта
             </Link>
+            <Link 
+              to="/admin" 
+              className="block text-primary-foreground hover:text-primary-foreground/80 underline transition-colors"
+            >
+              Управление товарами
+            </Link>
           </div>
 
           {/* Правый столбец - реквизиты ИП */}
