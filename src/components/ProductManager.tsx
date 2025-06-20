@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "./ImageUpload";
 import HeroManager from "./HeroManager";
+import CategoryManager from "./CategoryManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product } from "@/types/product";
 import { Plus, Edit, Trash2, Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -140,14 +142,20 @@ const ProductManager = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      {/* Hero Settings Section */}
-      <HeroManager />
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
       
-      {/* Product Management Section */}
-      <div>
-        <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Управление товарами</h1>
+      <Tabs defaultValue="products" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="products">Товары</TabsTrigger>
+          <TabsTrigger value="categories">Категории</TabsTrigger>
+          <TabsTrigger value="hero">Hero блок</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="products" className="space-y-6">
+          <div>
+            <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Управление товарами</h2>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog}>
@@ -309,6 +317,16 @@ const ProductManager = () => {
         ))}
       </div>
       </div>
+    </TabsContent>
+        
+        <TabsContent value="categories">
+          <CategoryManager />
+        </TabsContent>
+        
+        <TabsContent value="hero">
+          <HeroManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

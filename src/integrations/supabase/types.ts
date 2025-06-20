@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          alt_text: string | null
+          category_key: string
+          count_text: string
+          created_at: string
+          description: string
+          icon_name: string
+          id: number
+          image_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          alt_text?: string | null
+          category_key: string
+          count_text: string
+          created_at?: string
+          description: string
+          icon_name: string
+          id?: number
+          image_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string | null
+          category_key?: string
+          count_text?: string
+          created_at?: string
+          description?: string
+          icon_name?: string
+          id?: number
+          image_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hero_settings: {
         Row: {
           background_alt: string | null
