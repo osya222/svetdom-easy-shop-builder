@@ -23,6 +23,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+      {/* Product Image */}
+      {product.image && (
+        <div className="relative w-full h-48 overflow-hidden rounded-t-lg">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+        </div>
+      )}
       
       <CardContent className="p-4 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-2">
