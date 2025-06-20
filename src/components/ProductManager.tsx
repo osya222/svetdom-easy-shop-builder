@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import ImageUpload from "./ImageUpload";
+import HeroManager from "./HeroManager";
 import { Product } from "@/types/product";
 import { Plus, Edit, Trash2, Loader } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -139,8 +140,13 @@ const ProductManager = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      {/* Hero Settings Section */}
+      <HeroManager />
+      
+      {/* Product Management Section */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Управление товарами</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -301,6 +307,7 @@ const ProductManager = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
       </div>
     </div>
   );
