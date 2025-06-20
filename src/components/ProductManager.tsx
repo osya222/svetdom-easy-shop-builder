@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import ImageUpload from "./ImageUpload";
 import HeroManager from "./HeroManager";
 import CategoryManager from "./CategoryManager";
+import FooterManager from "./FooterManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Product } from "@/types/product";
 import { Plus, Edit, Trash2, Loader, Package } from "lucide-react";
@@ -248,11 +249,12 @@ const ProductManager = () => {
       <h1 className="text-3xl font-bold mb-8">Панель администратора</h1>
       
       <Tabs defaultValue="products" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="products">Товары</TabsTrigger>
           <TabsTrigger value="sets">Готовые наборы</TabsTrigger>
           <TabsTrigger value="categories">Категории</TabsTrigger>
           <TabsTrigger value="hero">Hero блок</TabsTrigger>
+          <TabsTrigger value="footer">Футер</TabsTrigger>
         </TabsList>
         
         <TabsContent value="products" className="space-y-6">
@@ -599,6 +601,10 @@ const ProductManager = () => {
         
         <TabsContent value="hero">
           <HeroManager />
+        </TabsContent>
+        
+        <TabsContent value="footer">
+          <FooterManager />
         </TabsContent>
       </Tabs>
     </div>

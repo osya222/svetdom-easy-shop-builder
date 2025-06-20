@@ -48,6 +48,75 @@ export type Database = {
         }
         Relationships: []
       }
+      footer_settings: {
+        Row: {
+          address_line_1: string | null
+          address_line_2: string | null
+          admin_link: string | null
+          admin_text: string | null
+          agreement_link: string | null
+          agreement_text: string | null
+          business_name: string | null
+          created_at: string
+          delivery_link: string | null
+          delivery_text: string | null
+          email: string | null
+          id: number
+          inn: string | null
+          ogrnip: string | null
+          payment_link: string | null
+          payment_text: string | null
+          phone: string | null
+          policy_link: string | null
+          policy_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          admin_link?: string | null
+          admin_text?: string | null
+          agreement_link?: string | null
+          agreement_text?: string | null
+          business_name?: string | null
+          created_at?: string
+          delivery_link?: string | null
+          delivery_text?: string | null
+          email?: string | null
+          id?: number
+          inn?: string | null
+          ogrnip?: string | null
+          payment_link?: string | null
+          payment_text?: string | null
+          phone?: string | null
+          policy_link?: string | null
+          policy_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line_1?: string | null
+          address_line_2?: string | null
+          admin_link?: string | null
+          admin_text?: string | null
+          agreement_link?: string | null
+          agreement_text?: string | null
+          business_name?: string | null
+          created_at?: string
+          delivery_link?: string | null
+          delivery_text?: string | null
+          email?: string | null
+          id?: number
+          inn?: string | null
+          ogrnip?: string | null
+          payment_link?: string | null
+          payment_text?: string | null
+          phone?: string | null
+          policy_link?: string | null
+          policy_text?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hero_settings: {
         Row: {
           background_alt: string | null
