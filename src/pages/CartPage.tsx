@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,7 +48,7 @@ const CartPage = () => {
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log("=== НАЧАЛО ОТПРАВКИ ЗАКАЗА ===");
+    console.log("=== НАЧАЛО ОТПРАВКИ ЗАКАЗА ЧЕРЕЗ WEB3FORMS ===");
     console.log("Данные клиента:", customerData);
     console.log("Товары:", items);
     console.log("Общая сумма:", totalPrice);
@@ -66,8 +67,8 @@ const CartPage = () => {
       
       console.log("Список товаров для отправки:", itemsList);
       
-      // Создание сообщения
-      const emailBody = `
+      // Создание сообщения для Web3Forms
+      const orderMessage = `
 НОВЫЙ ЗАКАЗ ${orderId}
 
 Дата и время: ${new Date().toLocaleString('ru-RU')}
@@ -88,93 +89,29 @@ ${customerData.comment ? `Комментарий: ${customerData.comment}` : ''}
 ${itemsList}
       `.trim();
       
-      console.log("Подготовленное письмо:", emailBody);
+      console.log("Подготовленное сообщение:", orderMessage);
       
-      let success = false;
-      let lastError = null;
-
-      // Попытка 1: Стандартный FormSubmit
-      try {
-        console.log("Попытка 1: Стандартный FormSubmit");
-        
-        const formData = new FormData();
-        formData.append('_subject', `Новый заказ ${orderId} с сайта СветДом`);
-        formData.append('_captcha', 'false');
-        formData.append('_template', 'box');
-        formData.append('_autoresponse', `Спасибо за заказ! Номер заказа: ${orderId}. Мы свяжемся с вами в ближайшее время.`);
-        formData.append('message', emailBody);
-        
-        const response = await fetch('https://formsubmit.co/pavel220585gpt@gmail.com', {
-          method: 'POST',
-          body: formData,
-          mode: 'no-cors'
-        });
-        
-        console.log("Ответ FormSubmit получен");
-        success = true;
-        
-      } catch (error) {
-        console.error("Ошибка FormSubmit:", error);
-        lastError = error;
-      }
-
-      // Попытка 2: Альтернативный сервис
-      if (!success) {
-        try {
-          console.log("Попытка 2: Альтернативный метод");
-          
-          const data = {
-            to: 'pavel220585gpt@gmail.com',
-            subject: `Новый заказ ${orderId} с сайта СветДом`,
-            text: emailBody,
-            replyTo: customerData.email
-          };
-          
-          const response = await fetch('https://submit-form.com/your-form-id', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-            mode: 'no-cors'
-          });
-          
-          console.log("Альтернативный метод выполнен");
-          success = true;
-          
-        } catch (error) {
-          console.error("Ошибка альтернативного метода:", error);
-          lastError = error;
-        }
-      }
-
-      // Попытка 3: Упрощенный FormSubmit без дополнительных параметров
-      if (!success) {
-        try {
-          console.log("Попытка 3: Упрощенный FormSubmit");
-          
-          const simpleFormData = new FormData();
-          simpleFormData.append('message', emailBody);
-          simpleFormData.append('email', customerData.email);
-          simpleFormData.append('name', `${customerData.firstName} ${customerData.lastName}`);
-          
-          const response = await fetch('https://formsubmit.co/pavel220585gpt@gmail.com', {
-            method: 'POST',
-            body: simpleFormData,
-            mode: 'no-cors'
-          });
-          
-          console.log("Упрощенный FormSubmit выполнен");
-          success = true;
-          
-        } catch (error) {
-          console.error("Ошибка упрощенного FormSubmit:", error);
-          lastError = error;
-        }
-      }
-
-      if (success) {
-        console.log("✅ Заказ успешно отправлен!");
+      // Подготавливаем данные для Web3Forms
+      const formData = new FormData();
+      formData.append('access_key', 'bf3362d5-6685-4f10-b7e7-7ee842098073');
+      formData.append('name', `${customerData.firstName} ${customerData.lastName}`);
+      formData.append('email', customerData.email);
+      formData.append('subject', `Новый заказ ${orderId} с сайта СветДом`);
+      formData.append('message', orderMessage);
+      formData.append('redirect', 'https://svetdom.online/thanks.html');
+      
+      console.log("Отправка через Web3Forms...");
+      
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      console.log("Ответ Web3Forms:", result);
+      
+      if (response.ok && result.success) {
+        console.log("✅ Заказ успешно отправлен через Web3Forms!");
         
         setTimeout(() => {
           setShowPayment(false);
@@ -190,47 +127,25 @@ ${itemsList}
           setAcceptTerms(false);
           toast({
             title: "Спасибо! Заказ принят",
-            description: `Номер заказа: ${orderId}. Мы отправили уведомление и скоро свяжемся с вами.`,
+            description: `Номер заказа: ${orderId}. Мы получили ваш заказ и скоро свяжемся с вами.`,
           });
         }, 2000);
-        
       } else {
-        throw lastError || new Error('Все методы отправки не сработали');
+        throw new Error(result.message || 'Ошибка при отправке формы');
       }
       
     } catch (error) {
-      console.error("❌ КРИТИЧЕСКАЯ ОШИБКА при отправке заказа:", error);
-      console.error("Детали ошибки:", {
-        name: error?.name,
-        message: error?.message,
-        stack: error?.stack
-      });
+      console.error("❌ ОШИБКА при отправке заказа через Web3Forms:", error);
       
       setOrderSent(false);
       
-      // Показываем пользователю информацию для ручной отправки
       const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const manualOrderInfo = `
-Заказ ${orderId}
-Клиент: ${customerData.firstName} ${customerData.lastName}
-Телефон: ${customerData.phone}
-Email: ${customerData.email}
-Сумма: ${totalPrice} ₽
-Товары: ${items.map(item => `${item.product.name} x${item.quantity}`).join(', ')}
-      `;
       
       toast({
-        title: "Проблема с автоматической отправкой",
+        title: "Проблема с отправкой заказа",
         description: `Пожалуйста, позвоните нам: +7 903 003-31-48 или напишите на pavel220585gpt@gmail.com. Номер заказа: ${orderId}`,
         variant: "destructive",
       });
-      
-      // Копируем информацию о заказе в буфер обмена для удобства
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(manualOrderInfo).catch(() => {
-          console.log("Не удалось скопировать в буфер обмена");
-        });
-      }
     }
     
     console.log("=== КОНЕЦ ОБРАБОТКИ ЗАКАЗА ===");
