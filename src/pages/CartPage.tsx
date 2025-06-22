@@ -44,27 +44,6 @@ const CartPage = () => {
 
   const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
 
-  // Функция для отправки через FormSubmit как резерв
-  const sendViaFormSubmit = async (orderMessage: string, orderId: string) => {
-    console.log("🔄 Отправка через FormSubmit (резервный метод)...");
-    
-    const formData = new FormData();
-    formData.append('name', `${customerData.firstName} ${customerData.lastName}`);
-    formData.append('email', customerData.email);
-    formData.append('phone', customerData.phone);
-    formData.append('message', orderMessage);
-    formData.append('_subject', `Заказ ${orderId} - СветДом`);
-    formData.append('_template', 'table');
-    formData.append('_captcha', 'false');
-    
-    const response = await fetch('https://formsubmit.co/pavel220585gpt@gmail.com', {
-      method: 'POST',
-      body: formData
-    });
-    
-    return response;
-  };
-
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -87,7 +66,7 @@ const CartPage = () => {
       
       console.log("Список товаров для отправки:", itemsList);
       
-      // Создание сообщения для отправки
+      // Создание подробного сообщения для отправки
       const orderMessage = `
 НОВЫЙ ЗАКАЗ ${orderId}
 
@@ -107,88 +86,45 @@ ${customerData.comment ? `Комментарий: ${customerData.comment}` : ''}
 
 ТОВАРЫ:
 ${itemsList}
+
+Отправлено с сайта СветДом
       `.trim();
       
+      console.log("🚀 Отправка через Web3Forms...");
+      console.log("Access Key:", 'bf3362d5-6685-4f10-b7e7-7ee842098073');
       console.log("Подготовленное сообщение:", orderMessage);
       
-      let success = false;
-      let errorMessage = '';
-
-      // Попытка 1: Web3Forms
-      console.log("🚀 Попытка 1: Отправка через Web3Forms...");
-      try {
-        const formData = new FormData();
-        formData.append('access_key', 'bf3362d5-6685-4f10-b7e7-7ee842098073');
-        formData.append('name', `${customerData.firstName} ${customerData.lastName}`);
-        formData.append('email', customerData.email);
-        formData.append('subject', `Новый заказ ${orderId} с сайта СветДом`);
-        formData.append('message', orderMessage);
-        formData.append('redirect', 'https://svetdom.online/thanks.html');
-        
-        const response = await fetch('https://api.web3forms.com/submit', {
-          method: 'POST',
-          body: formData
-        });
-        
-        const result = await response.json();
-        console.log("Ответ Web3Forms:", result);
-        
-        if (response.ok && result.success) {
-          console.log("✅ Заказ успешно отправлен через Web3Forms!");
-          success = true;
-        } else {
-          throw new Error(result.message || 'Ошибка Web3Forms');
-        }
-      } catch (web3Error) {
-        console.error("❌ Ошибка Web3Forms:", web3Error);
-        errorMessage += `Web3Forms: ${web3Error.message}; `;
-
-        // Попытка 2: FormSubmit (резерв)
-        console.log("🔄 Попытка 2: Отправка через FormSubmit...");
-        try {
-          const formSubmitResponse = await sendViaFormSubmit(orderMessage, orderId);
-          
-          if (formSubmitResponse.ok) {
-            console.log("✅ Заказ успешно отправлен через FormSubmit!");
-            success = true;
-          } else {
-            throw new Error(`FormSubmit HTTP ${formSubmitResponse.status}`);
-          }
-        } catch (formSubmitError) {
-          console.error("❌ Ошибка FormSubmit:", formSubmitError);
-          errorMessage += `FormSubmit: ${formSubmitError.message}; `;
-
-          // Попытка 3: Прямая отправка на Netlify Forms (дополнительный резерв)
-          console.log("🔄 Попытка 3: Отправка через Netlify Forms...");
-          try {
-            const netlifyParams = new URLSearchParams();
-            netlifyParams.append('form-name', 'order');
-            netlifyParams.append('name', `${customerData.firstName} ${customerData.lastName}`);
-            netlifyParams.append('email', customerData.email);
-            netlifyParams.append('phone', customerData.phone);
-            netlifyParams.append('order-details', orderMessage);
-
-            const netlifyResponse = await fetch('/', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: netlifyParams.toString()
-            });
-
-            if (netlifyResponse.ok) {
-              console.log("✅ Заказ успешно отправлен через Netlify Forms!");
-              success = true;
-            } else {
-              throw new Error(`Netlify Forms HTTP ${netlifyResponse.status}`);
-            }
-          } catch (netlifyError) {
-            console.error("❌ Ошибка Netlify Forms:", netlifyError);
-            errorMessage += `Netlify: ${netlifyError.message}`;
-          }
-        }
-      }
-
-      if (success) {
-        console.log("✅ ЗАКАЗ УСПЕШНО ОТПРАВЛЕН!");
+      // Подготовка данных для Web3Forms
+      const formData = new FormData();
+      formData.append('access_key', 'bf3362d5-6685-4f10-b7e7-7ee842098073');
+      formData.append('name', `${customerData.firstName} ${customerData.lastName}`);
+      formData.append('email', customerData.email);
+      formData.append('phone', customerData.phone);
+      formData.append('subject', `Новый заказ ${orderId} с сайта СветДом`);
+      formData.append('message', orderMessage);
+      formData.append('from_name', 'СветДом - Интернет магазин');
+      formData.append('to_name', 'Администратор СветДом');
+      
+      // Дополнительные поля для лучшей доставки
+      formData.append('replyto', customerData.email);
+      formData.append('cc', 'pavel220585gpt@gmail.com');
+      
+      console.log("FormData подготовлена. Отправляем запрос...");
+      
+      const response = await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+      
+      console.log("Статус ответа:", response.status);
+      console.log("Headers ответа:", Object.fromEntries(response.headers.entries()));
+      
+      const result = await response.json();
+      console.log("Полный ответ от Web3Forms:", result);
+      
+      if (response.ok && result.success) {
+        console.log("✅ Заказ успешно отправлен через Web3Forms!");
+        console.log("ID сообщения от Web3Forms:", result.message_id || 'Не предоставлен');
         
         setTimeout(() => {
           setShowPayment(false);
@@ -208,7 +144,8 @@ ${itemsList}
           });
         }, 2000);
       } else {
-        throw new Error(`Все методы отправки не сработали: ${errorMessage}`);
+        console.error("❌ Ошибка Web3Forms:", result);
+        throw new Error(result.message || 'Неизвестная ошибка Web3Forms');
       }
       
     } catch (error) {
