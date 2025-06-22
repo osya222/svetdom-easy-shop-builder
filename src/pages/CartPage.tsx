@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -43,6 +44,72 @@ const CartPage = () => {
   };
 
   const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
+
+  const handleOrderSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    console.log("Отправка заказа начата", { customerData, items, totalPrice });
+    
+    setOrderSent(true);
+    
+    try {
+      // Создаем данные для отправки
+      const formData = new FormData();
+      formData.append('_subject', 'Новая заявка с сайта СветДом');
+      formData.append('_captcha', 'false');
+      formData.append('_next', window.location.origin + '/cart?success=true');
+      formData.append('_template', 'table');
+      
+      // Данные клиента
+      formData.append('Имя', `${customerData.firstName} ${customerData.lastName}`);
+      formData.append('Телефон', customerData.phone);
+      formData.append('Email', customerData.email);
+      formData.append('Комментарий', customerData.comment || 'Без комментария');
+      formData.append('Способ оплаты', 'Онлайн по СБП');
+      formData.append('Сумма заказа', `${totalPrice} ₽`);
+      
+      // Список товаров
+      const itemsList = items.map(item => 
+        `${item.product.name} × ${item.quantity} = ${item.product.price * item.quantity} ₽`
+      ).join('\n');
+      formData.append('Товары', itemsList);
+      
+      // Отправляем через fetch
+      const response = await fetch('https://formsubmit.co/pavel220585gpt@gmail.com', {
+        method: 'POST',
+        body: formData
+      });
+      
+      console.log("Ответ сервера:", response.status, response.statusText);
+      
+      setTimeout(() => {
+        setShowPayment(false);
+        setOrderSent(false);
+        clearCart();
+        setCustomerData({
+          firstName: '',
+          lastName: '',
+          phone: '',
+          email: '',
+          comment: ''
+        });
+        setAcceptTerms(false);
+        toast({
+          title: "Спасибо! Заявка отправлена",
+          description: "Мы свяжемся с вами в ближайшее время",
+        });
+      }, 2000);
+      
+    } catch (error) {
+      console.error("Ошибка отправки заказа:", error);
+      setOrderSent(false);
+      toast({
+        title: "Ошибка отправки",
+        description: "Попробуйте снова или свяжитесь с нами по телефону",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -361,60 +428,21 @@ const CartPage = () => {
 
               {/* Фиксированная кнопка снизу */}
               <div className="mt-4 pt-4 border-t">
-                <form 
-                  action="https://formsubmit.co/pavel220585gpt@gmail.com" 
-                  method="POST"
-                  onSubmit={() => {
-                    setOrderSent(true);
-                    setTimeout(() => {
-                      setShowPayment(false);
-                      setOrderSent(false);
-                      clearCart();
-                      setCustomerData({
-                        firstName: '',
-                        lastName: '',
-                        phone: '',
-                        email: '',
-                        comment: ''
-                      });
-                      toast({
-                        title: "Спасибо! Заявка отправлена",
-                        description: "Мы свяжемся с вами в ближайшее время",
-                      });
-                    }, 2000);
-                  }}
+                <Button 
+                  onClick={handleOrderSubmit}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                  disabled={!acceptTerms}
+                  size="lg"
                 >
-                  {/* Скрытые поля настройки FormSubmit */}
-                  <input type="hidden" name="_subject" value="Новая заявка с сайта СветДом" />
-                  <input type="hidden" name="_captcha" value="false" />
-                  
-                  {/* Скрытые поля с данными заказа */}
-                  <input type="hidden" name="Имя" value={`${customerData.firstName} ${customerData.lastName}`} />
-                  <input type="hidden" name="Телефон" value={customerData.phone} />
-                  <input type="hidden" name="Email" value={customerData.email} />
-                  <input type="hidden" name="Комментарий" value={customerData.comment} />
-                  <input type="hidden" name="Способ оплаты" value="Онлайн по СБП" />
-                  <input type="hidden" name="Сумма заказа" value={`${totalPrice} ₽`} />
-                  <input type="hidden" name="Товары" value={items.map(item => 
-                    `${item.product.name} × ${item.quantity} = ${item.product.price * item.quantity} ₽`
-                  ).join('; ')} />
-                  
-                  <Button 
-                    type="submit"
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    disabled={!acceptTerms}
-                    size="lg"
-                  >
-                    <QrCode className="h-5 w-5 mr-2" />
-                    Оплатить через СБП
-                  </Button>
-                  
-                  {!acceptTerms && (
-                    <p className="text-sm text-muted-foreground text-center mt-2">
-                      Примите условия для продолжения
-                    </p>
-                  )}
-                </form>
+                  <QrCode className="h-5 w-5 mr-2" />
+                  Оплатить через СБП
+                </Button>
+                
+                {!acceptTerms && (
+                  <p className="text-sm text-muted-foreground text-center mt-2">
+                    Примите условия для продолжения
+                  </p>
+                )}
               </div>
             </div>
           ) : (
