@@ -158,20 +158,20 @@ ${itemsList}
           console.error("❌ Ошибка FormSubmit:", formSubmitError);
           errorMessage += `FormSubmit: ${formSubmitError.message}; `;
 
-          // Попытка 3: Прямая отправка на EmailJS (дополнительный резерв)
+          // Попытка 3: Прямая отправка на Netlify Forms (дополнительный резерв)
           console.log("🔄 Попытка 3: Отправка через Netlify Forms...");
           try {
-            const netlifyFormData = new FormData();
-            netlifyFormData.append('form-name', 'order');
-            netlifyFormData.append('name', `${customerData.firstName} ${customerData.lastName}`);
-            netlifyFormData.append('email', customerData.email);
-            netlifyFormData.append('phone', customerData.phone);
-            netlifyFormData.append('order-details', orderMessage);
+            const netlifyParams = new URLSearchParams();
+            netlifyParams.append('form-name', 'order');
+            netlifyParams.append('name', `${customerData.firstName} ${customerData.lastName}`);
+            netlifyParams.append('email', customerData.email);
+            netlifyParams.append('phone', customerData.phone);
+            netlifyParams.append('order-details', orderMessage);
 
             const netlifyResponse = await fetch('/', {
               method: 'POST',
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams(netlifyFormData).toString()
+              body: netlifyParams.toString()
             });
 
             if (netlifyResponse.ok) {
