@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,67 +47,119 @@ const CartPage = () => {
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log("Отправка заказа начата", { customerData, items, totalPrice });
+    console.log("=== НАЧАЛО ОТПРАВКИ ЗАКАЗА ===");
+    console.log("Данные клиента:", customerData);
+    console.log("Товары:", items);
+    console.log("Общая сумма:", totalPrice);
     
     setOrderSent(true);
     
     try {
-      // Создаем данные для отправки
-      const formData = new FormData();
-      formData.append('_subject', 'Новая заявка с сайта СветДом');
-      formData.append('_captcha', 'false');
-      formData.append('_next', window.location.origin + '/cart?success=true');
-      formData.append('_template', 'table');
+      // Уникальный идентификатор заказа
+      const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      console.log("ID заказа:", orderId);
       
-      // Данные клиента
-      formData.append('Имя', `${customerData.firstName} ${customerData.lastName}`);
-      formData.append('Телефон', customerData.phone);
-      formData.append('Email', customerData.email);
-      formData.append('Комментарий', customerData.comment || 'Без комментария');
-      formData.append('Способ оплаты', 'Онлайн по СБП');
-      formData.append('Сумма заказа', `${totalPrice} ₽`);
-      
-      // Список товаров
-      const itemsList = items.map(item => 
-        `${item.product.name} × ${item.quantity} = ${item.product.price * item.quantity} ₽`
+      // Список товаров в читаемом формате
+      const itemsList = items.map((item, index) => 
+        `${index + 1}. ${item.product.name} - ${item.quantity} шт. × ${item.product.price} ₽ = ${item.product.price * item.quantity} ₽`
       ).join('\n');
-      formData.append('Товары', itemsList);
       
-      // Отправляем через fetch
-      const response = await fetch('https://formsubmit.co/pavel220585gpt@gmail.com', {
-        method: 'POST',
-        body: formData
+      console.log("Список товаров для отправки:", itemsList);
+      
+      // Создание объекта для отправки
+      const emailData = {
+        _subject: `Новый заказ ${orderId} с сайта СветДом`,
+        _captcha: 'false',
+        _template: 'table',
+        _autoresponse: `Спасибо за заказ! Номер заказа: ${orderId}. Мы свяжемся с вами в ближайшее время.`,
+        
+        // Данные заказа
+        'Номер заказа': orderId,
+        'Дата и время': new Date().toLocaleString('ru-RU'),
+        'Имя клиента': `${customerData.firstName} ${customerData.lastName}`,
+        'Телефон': customerData.phone,
+        'Email': customerData.email,
+        'Комментарий': customerData.comment || 'Без комментария',
+        'Способ оплаты': 'Онлайн по СБП',
+        'Количество товаров': `${totalItems} шт.`,
+        'Общая сумма': `${totalPrice} ₽`,
+        'Список товаров': itemsList,
+        'Бесплатная доставка': totalPrice >= 2000 ? 'Да' : 'Нет'
+      };
+      
+      console.log("Данные для отправки:", emailData);
+      
+      // Преобразуем в FormData
+      const formData = new FormData();
+      Object.entries(emailData).forEach(([key, value]) => {
+        formData.append(key, value.toString());
       });
       
-      console.log("Ответ сервера:", response.status, response.statusText);
+      console.log("FormData создана, отправляем запрос...");
       
-      setTimeout(() => {
-        setShowPayment(false);
-        setOrderSent(false);
-        clearCart();
-        setCustomerData({
-          firstName: '',
-          lastName: '',
-          phone: '',
-          email: '',
-          comment: ''
-        });
-        setAcceptTerms(false);
-        toast({
-          title: "Спасибо! Заявка отправлена",
-          description: "Мы свяжемся с вами в ближайшее время",
-        });
-      }, 2000);
+      // Отправляем запрос
+      const response = await fetch('https://formsubmit.co/pavel220585gpt@gmail.com', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+      
+      console.log("Статус ответа:", response.status);
+      console.log("Заголовки ответа:", Object.fromEntries(response.headers.entries()));
+      
+      let responseText = '';
+      try {
+        responseText = await response.text();
+        console.log("Тело ответа:", responseText);
+      } catch (e) {
+        console.log("Не удалось прочитать тело ответа:", e);
+      }
+      
+      // Проверяем успешность отправки
+      if (response.ok || response.status === 200 || response.status === 302) {
+        console.log("✅ Письмо успешно отправлено!");
+        
+        setTimeout(() => {
+          setShowPayment(false);
+          setOrderSent(false);
+          clearCart();
+          setCustomerData({
+            firstName: '',
+            lastName: '',
+            phone: '',
+            email: '',
+            comment: ''
+          });
+          setAcceptTerms(false);
+          toast({
+            title: "Спасибо! Заказ принят",
+            description: `Номер заказа: ${orderId}. Мы отправили подтверждение на ваш email.`,
+          });
+        }, 2000);
+        
+      } else {
+        throw new Error(`HTTP ${response.status}: ${responseText}`);
+      }
       
     } catch (error) {
-      console.error("Ошибка отправки заказа:", error);
+      console.error("❌ ОШИБКА при отправке заказа:", error);
+      console.error("Детали ошибки:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
+      
       setOrderSent(false);
       toast({
-        title: "Ошибка отправки",
-        description: "Попробуйте снова или свяжитесь с нами по телефону",
+        title: "Ошибка отправки заказа",
+        description: "Попробуйте снова через несколько минут или свяжитесь с нами по телефону +7 903 003-31-48",
         variant: "destructive",
       });
     }
+    
+    console.log("=== КОНЕЦ ОБРАБОТКИ ЗАКАЗА ===");
   };
 
   if (items.length === 0) {
