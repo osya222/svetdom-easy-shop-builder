@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface YookassaPaymentProps {
   amount: number;
@@ -35,93 +36,31 @@ const YookassaPayment = ({
       console.log("ID заказа:", orderId);
       console.log("Данные клиента:", customerData);
 
-      // API ключ ЮКассы
-      const shopId = "1112821";
-      const apiKey = "501aa112-a018-47c6-91fe-ef8cb1837d14";
-      
-      // Создаем уникальный идентификатор платежа
-      const paymentId = `${orderId}_${Date.now()}_YK`;
-      
-      // Подготавливаем данные для создания платежа
-      const paymentData = {
-        amount: {
-          value: amount.toFixed(2),
-          currency: "RUB"
-        },
-        capture: true,
-        confirmation: {
-          type: "redirect",
-          return_url: window.location.href
-        },
-        description: `Оплата заказа ${orderId} - СветДом`,
-        metadata: {
-          order_id: orderId,
-          customer_email: customerData.email,
-          customer_phone: customerData.phone
-        },
-        receipt: {
-          customer: {
-            full_name: `${customerData.firstName} ${customerData.lastName}`,
-            email: customerData.email,
-            phone: customerData.phone
-          },
-          items: [
-            {
-              description: `Заказ ${orderId}`,
-              quantity: "1.00",
-              amount: {
-                value: amount.toFixed(2),
-                currency: "RUB"
-              },
-              vat_code: 1,
-              payment_mode: "full_payment",
-              payment_subject: "commodity"
-            }
-          ]
+      // Вызываем серверную функцию для создания платежа
+      const { data, error } = await supabase.functions.invoke('yookassa-payment', {
+        body: {
+          amount,
+          orderId,
+          customerData
         }
-      };
-
-      console.log("Данные для отправки в ЮКассу:", paymentData);
-
-      // Создаем Basic Auth заголовок
-      const authHeader = btoa(`${shopId}:${apiKey}`);
-
-      // Генерируем Idempotence-Key для безопасности
-      const idempotenceKey = `${paymentId}_${Math.random().toString(36).substr(2, 9)}`;
-
-      console.log("Idempotence-Key:", idempotenceKey);
-
-      // Отправляем запрос на создание платежа
-      const response = await fetch('https://api.yookassa.ru/v3/payments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${authHeader}`,
-          'Idempotence-Key': idempotenceKey
-        },
-        body: JSON.stringify(paymentData)
       });
 
-      console.log("Статус ответа ЮКассы:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Ошибка HTTP от ЮКассы:", response.status, errorText);
-        throw new Error(`HTTP Error ${response.status}: ${errorText}`);
+      if (error) {
+        console.error("❌ Ошибка при вызове функции:", error);
+        throw new Error(error.message || "Ошибка при создании платежа");
       }
 
-      const result = await response.json();
-      console.log("Ответ от ЮКассы:", result);
+      console.log("Ответ от ЮКассы через сервер:", data);
 
-      if (result.status && ['pending', 'waiting_for_capture'].includes(result.status)) {
+      if (data.status && ['pending', 'waiting_for_capture'].includes(data.status)) {
         console.log("✅ Платеж успешно создан");
         
         // Проверяем наличие URL для перенаправления
-        if (result.confirmation && result.confirmation.confirmation_url) {
-          console.log("URL для оплаты:", result.confirmation.confirmation_url);
+        if (data.confirmation && data.confirmation.confirmation_url) {
+          console.log("URL для оплаты:", data.confirmation.confirmation_url);
           
           // Перенаправляем пользователя на страницу оплаты в новой вкладке
-          window.open(result.confirmation.confirmation_url, '_blank');
+          window.open(data.confirmation.confirmation_url, '_blank');
           
           toast({
             title: "Переход к оплате",
@@ -132,13 +71,13 @@ const YookassaPayment = ({
           onSuccess();
           
         } else {
-          console.error("❌ URL для оплаты не найден в ответе:", result);
+          console.error("❌ URL для оплаты не найден в ответе:", data);
           throw new Error("URL для оплаты не получен от ЮКассы");
         }
         
       } else {
-        console.error("❌ Неожиданный статус платежа:", result.status);
-        throw new Error(`Неожиданный статус платежа: ${result.status || 'неизвестен'}`);
+        console.error("❌ Неожиданный статус платежа:", data.status);
+        throw new Error(`Неожиданный статус платежа: ${data.status || 'неизвестен'}`);
       }
 
     } catch (error) {
