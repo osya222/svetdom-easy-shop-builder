@@ -43,36 +43,41 @@ const TinkoffPayment = ({
       // Создаем уникальный OrderId для каждого платежа (максимум 50 символов)
       const tinkoffOrderId = `${orderId.substring(0, 30)}_${Date.now()}`.substring(0, 50);
       
-      // Функция для вычисления токена по документации Тинькофф
-      const generateToken = (params: Record<string, any>) => {
-        // Объект для токена (исключаем Receipt и URL-ы)
+      // Функция для вычисления токена согласно официальной документации Тинькофф
+      const generateToken = async (params: Record<string, any>) => {
+        // Создаем объект для токена, исключая определенные поля
         const tokenParams: Record<string, string | number> = {};
         
-        // Добавляем только базовые параметры
-        if (params.TerminalKey) tokenParams.TerminalKey = params.TerminalKey;
-        if (params.Amount) tokenParams.Amount = params.Amount;
-        if (params.OrderId) tokenParams.OrderId = params.OrderId;
-        if (params.Description) tokenParams.Description = params.Description;
-        if (params.CustomerKey) tokenParams.CustomerKey = params.CustomerKey;
+        // Добавляем параметры в правильном порядке согласно документации
+        Object.keys(params).forEach(key => {
+          // Исключаем поля, которые не участвуют в подписи
+          if (!['Receipt', 'NotificationURL', 'SuccessURL', 'FailURL', 'Token'].includes(key)) {
+            tokenParams[key] = params[key];
+          }
+        });
         
         // Добавляем пароль
         tokenParams.Password = password;
         
-        // Сортируем ключи и создаем строку
+        // Сортируем ключи по алфавиту
         const sortedKeys = Object.keys(tokenParams).sort();
-        const tokenString = sortedKeys.map(key => tokenParams[key]).join('');
+        
+        // Создаем строку конкатенацией значений
+        const tokenString = sortedKeys.map(key => String(tokenParams[key])).join('');
         
         console.log("Параметры для токена:", tokenParams);
+        console.log("Отсортированные ключи:", sortedKeys);
         console.log("Строка для хеширования:", tokenString);
         
-        // Используем простое решение с crypto-js или встроенным crypto
-        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(tokenString))
-          .then(hashBuffer => {
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-            console.log("Сгенерированный токен:", hashHex);
-            return hashHex;
-          });
+        // Вычисляем SHA-256 хеш
+        const encoder = new TextEncoder();
+        const data = encoder.encode(tokenString);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        
+        console.log("Сгенерированный токен SHA-256:", hashHex);
+        return hashHex;
       };
 
       // Базовые параметры
