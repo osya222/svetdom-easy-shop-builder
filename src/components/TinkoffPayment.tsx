@@ -38,16 +38,49 @@ const TinkoffPayment = ({
 
       // Параметры для Тинькофф API
       const terminalKey = "1751034706837DEMO";
+      const password = "TinkoffBankTest"; // Демо пароль для тестовой среды
       
       // Создаем уникальный OrderId для каждого платежа (максимум 50 символов)
       const tinkoffOrderId = `${orderId.substring(0, 30)}_${Date.now()}`.substring(0, 50);
       
-      const paymentData = {
+      // Функция для вычисления токена
+      const generateToken = (params: Record<string, any>, password: string) => {
+        // Удаляем поля, которые не участвуют в подписи
+        const filteredParams = { ...params };
+        delete filteredParams.Receipt;
+        delete filteredParams.NotificationURL;
+        delete filteredParams.SuccessURL;
+        delete filteredParams.FailURL;
+        
+        // Добавляем пароль
+        filteredParams.Password = password;
+        
+        // Сортируем ключи и создаем строку для хеширования
+        const sortedKeys = Object.keys(filteredParams).sort();
+        const tokenString = sortedKeys.map(key => filteredParams[key]).join('');
+        
+        // Возвращаем SHA-256 хеш (в браузере используем Web Crypto API)
+        return crypto.subtle.digest('SHA-256', new TextEncoder().encode(tokenString))
+          .then(hashBuffer => {
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+          });
+      };
+
+      const baseParams = {
         TerminalKey: terminalKey,
         Amount: amount * 100, // Сумма в копейках
         OrderId: tinkoffOrderId,
         Description: `Оплата заказа ${orderId} - СветДом`,
         CustomerKey: customerData.email,
+      };
+
+      // Генерируем токен
+      const token = await generateToken(baseParams, password);
+
+      const paymentData = {
+        ...baseParams,
+        Token: token,
         NotificationURL: `${window.location.origin}/api/tinkoff-notification`,
         SuccessURL: `${window.location.origin}/?payment=success`,
         FailURL: `${window.location.origin}/?payment=fail`,
