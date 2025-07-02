@@ -70,7 +70,7 @@ const CartPage = () => {
   };
 
   const handleAcceptTermsChange = (checked: string | boolean) => {
-    setAcceptTerms(checked === true);
+    setAcceptTerms(checked === true || checked === "true");
   };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
