@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import Footer from "@/components/Footer";
+import TinkoffPayment from "@/components/TinkoffPayment";
 
 const CartPage = () => {
   const { 
@@ -43,6 +45,39 @@ const CartPage = () => {
   };
 
   const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
+
+  // Функция для обработки успешной оплаты
+  const handlePaymentSuccess = () => {
+    console.log("✅ Платеж успешно завершен");
+    
+    setShowPayment(false);
+    setOrderSent(false);
+    clearCart();
+    setCustomerData({
+      firstName: '',
+      lastName: '',
+      phone: '',
+      email: '',
+      comment: ''
+    });
+    setAcceptTerms(false);
+    
+    toast({
+      title: "Спасибо! Оплата прошла успешно",
+      description: "Ваш заказ оплачен и принят в обработку. Мы скоро свяжемся с вами.",
+    });
+  };
+
+  // Функция для обработки ошибки оплаты
+  const handlePaymentError = (error: string) => {
+    console.error("❌ Ошибка при оплате:", error);
+    
+    toast({
+      title: "Ошибка оплаты",
+      description: `Не удалось обработать платеж: ${error}. Попробуйте еще раз или свяжитесь с нами.`,
+      variant: "destructive",
+    });
+  };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +116,7 @@ ${customerData.comment ? `Комментарий: ${customerData.comment}` : ''}
 ЗАКАЗ:
 Количество товаров: ${totalItems} шт.
 Общая сумма: ${totalPrice} ₽
-Способ оплаты: Онлайн по СБП
+Способ оплаты: Банковская карта (Тинькофф)
 Бесплатная доставка: ${totalPrice >= 2000 ? 'Да' : 'Нет'}
 
 ТОВАРЫ:
@@ -126,23 +161,18 @@ ${itemsList}
         console.log("✅ Заказ успешно отправлен через Web3Forms!");
         console.log("ID сообщения от Web3Forms:", result.message_id || 'Не предоставлен');
         
-        setTimeout(() => {
-          setShowPayment(false);
-          setOrderSent(false);
-          clearCart();
-          setCustomerData({
-            firstName: '',
-            lastName: '',
-            phone: '',
-            email: '',
-            comment: ''
-          });
-          setAcceptTerms(false);
-          toast({
-            title: "Спасибо! Заказ принят",
-            description: `Номер заказа: ${orderId}. Мы получили ваш заказ и скоро свяжемся с вами.`,
-          });
-        }, 2000);
+        // После успешной отправки заказа не очищаем форму,
+        // так как пользователь будет перенаправлен на оплату
+        setOrderSent(false);
+        
+        toast({
+          title: "Заказ принят",
+          description: `Номер заказа: ${orderId}. Переходим к оплате...`,
+        });
+        
+        // Сохраняем ID заказа для дальнейшего использования
+        (window as any).currentOrderId = orderId;
+        
       } else {
         console.error("❌ Ошибка Web3Forms:", result);
         throw new Error(result.message || 'Неизвестная ошибка Web3Forms');
@@ -409,9 +439,9 @@ ${itemsList}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>Оплата по СБП</DialogTitle>
+            <DialogTitle>Выберите способ оплаты</DialogTitle>
             <DialogDescription>
-              Быстрая и безопасная оплата через Систему быстрых платежей
+              Быстрая и безопасная оплата
             </DialogDescription>
           </DialogHeader>
           
@@ -430,33 +460,41 @@ ${itemsList}
                   )}
                 </div>
 
-                {/* QR-код СБП */}
-                <div className="text-center space-y-4">
-                  <div className="bg-muted p-6 rounded-lg">
-                    <img 
-                      src="/images/sbp_qr_stub.png" 
-                      alt="QR-код СБП" 
-                      className="w-24 h-24 mx-auto mb-2"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (placeholder) placeholder.style.display = 'block';
-                      }}
-                    />
-                    <div className="hidden">
-                      <QrCode className="h-24 w-24 mx-auto mb-2 text-muted-foreground" />
-                    </div>
-                    <p className="text-xs text-muted-foreground">QR-код СБП</p>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    Комиссия 0% • Мгновенное зачисление
-                  </Badge>
-                  
-                  <div className="text-center">
-                    <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Наведите камеру на QR-код или откройте приложение банка
+                {/* Сумма заказа */}
+                <div className="text-center">
+                  <p className="text-lg font-semibold">Сумма к оплате: {totalPrice} ₽</p>
+                </div>
+
+                {/* Варианты оплаты */}
+                <div className="space-y-3">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Оплата банковской картой</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Безопасная оплата через Тинькофф
                     </p>
+                    <TinkoffPayment
+                      amount={totalPrice}
+                      orderId={(window as any).currentOrderId || `ORDER_${Date.now()}`}
+                      customerData={customerData}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                    />
+                  </div>
+
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium mb-2">Оплата по СБП</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      QR-код для быстрых платежей
+                    </p>
+                    <Button 
+                      onClick={handleOrderSubmit}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white"
+                      disabled={!acceptTerms}
+                      size="lg"
+                    >
+                      <QrCode className="h-5 w-5 mr-2" />
+                      Оплатить через СБП
+                    </Button>
                   </div>
                 </div>
 
@@ -480,24 +518,13 @@ ${itemsList}
                 </div>
               </div>
 
-              {/* Фиксированная кнопка снизу */}
-              <div className="mt-4 pt-4 border-t">
-                <Button 
-                  onClick={handleOrderSubmit}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!acceptTerms}
-                  size="lg"
-                >
-                  <QrCode className="h-5 w-5 mr-2" />
-                  Оплатить через СБП
-                </Button>
-                
-                {!acceptTerms && (
-                  <p className="text-sm text-muted-foreground text-center mt-2">
+              {!acceptTerms && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground text-center">
                     Примите условия для продолжения
                   </p>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center space-y-4 py-8">
@@ -507,7 +534,7 @@ ${itemsList}
               <div>
                 <h3 className="text-lg font-semibold mb-2">Спасибо!</h3>
                 <p className="text-muted-foreground">
-                  Ваш заказ принят. Ожидаем оплату через СБП.
+                  Ваш заказ принят. Переходим к оплате.
                 </p>
               </div>
             </div>
