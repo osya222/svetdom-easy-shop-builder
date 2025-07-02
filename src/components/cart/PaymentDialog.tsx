@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { QrCode } from "lucide-react";
 import { Link } from "react-router-dom";
 import TinkoffPayment from "@/components/TinkoffPayment";
+import YookassaPayment from "@/components/YookassaPayment";
 import { CustomerData } from "./CustomerForm";
 
 interface PaymentDialogProps {
@@ -76,6 +77,20 @@ const PaymentDialog = ({
                     Безопасная оплата через Тинькофф
                   </p>
                   <TinkoffPayment
+                    amount={totalPrice}
+                    orderId={(window as any).currentOrderId || `ORDER_${Date.now()}`}
+                    customerData={customerData}
+                    onSuccess={onPaymentSuccess}
+                    onError={onPaymentError}
+                  />
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">ЮКасса</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Безопасная оплата через ЮКассу
+                  </p>
+                  <YookassaPayment
                     amount={totalPrice}
                     orderId={(window as any).currentOrderId || `ORDER_${Date.now()}`}
                     customerData={customerData}
