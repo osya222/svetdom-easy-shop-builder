@@ -36,7 +36,8 @@ const YookassaPayment = ({
       console.log("Данные клиента:", customerData);
 
       // API ключ ЮКассы
-      const shopId = "live_SNIlr1WeN16M5mNJoK-s51uI2NdClNA6GuYu6X2hxxc";
+      const shopId = "1112821";
+      const apiKey = "501aa112-a018-47c6-91fe-ef8cb1837d14";
       
       // Создаем уникальный идентификатор платежа
       const paymentId = `${orderId}_${Date.now()}_YK`;
@@ -83,7 +84,7 @@ const YookassaPayment = ({
       console.log("Данные для отправки в ЮКассу:", paymentData);
 
       // Создаем Basic Auth заголовок
-      const authHeader = btoa(`${shopId}:`);
+      const authHeader = btoa(`${shopId}:${apiKey}`);
 
       // Генерируем Idempotence-Key для безопасности
       const idempotenceKey = `${paymentId}_${Math.random().toString(36).substr(2, 9)}`;
