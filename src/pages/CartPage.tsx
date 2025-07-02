@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -68,6 +67,10 @@ const CartPage = () => {
       description: `Не удалось обработать платеж: ${error}. Попробуйте еще раз или свяжитесь с нами.`,
       variant: "destructive",
     });
+  };
+
+  const handleAcceptTermsChange = (checked: string | boolean) => {
+    setAcceptTerms(checked === true);
   };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
@@ -232,7 +235,7 @@ ${itemsList}
         customerData={customerData}
         totalPrice={totalPrice}
         acceptTerms={acceptTerms}
-        onAcceptTermsChange={setAcceptTerms}
+        onAcceptTermsChange={handleAcceptTermsChange}
         onOrderSubmit={handleOrderSubmit}
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentError={handlePaymentError}
