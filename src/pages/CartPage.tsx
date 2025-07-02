@@ -69,8 +69,9 @@ const CartPage = () => {
     });
   };
 
-  const handleAcceptTermsChange = (checked: boolean) => {
-    setAcceptTerms(checked);
+  const handleAcceptTermsChange = (checked: boolean | string) => {
+    const booleanValue = checked === true || checked === "true";
+    setAcceptTerms(booleanValue);
   };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
