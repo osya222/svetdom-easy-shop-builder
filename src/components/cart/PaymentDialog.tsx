@@ -33,8 +33,10 @@ const PaymentDialog = ({
   onPaymentSuccess,
   onPaymentError
 }: PaymentDialogProps) => {
-  const handleCheckboxChange = (checked: string | boolean) => {
-    onAcceptTermsChange(checked === true || checked === "true");
+  const handleCheckboxChange = (checked: boolean | string) => {
+    // Convert any truthy value to boolean, handle "indeterminate" as false
+    const booleanValue = checked === true || checked === "true";
+    onAcceptTermsChange(booleanValue);
   };
 
   return (
