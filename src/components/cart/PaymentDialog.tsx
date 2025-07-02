@@ -15,7 +15,7 @@ interface PaymentDialogProps {
   customerData: CustomerData;
   totalPrice: number;
   acceptTerms: boolean;
-  onAcceptTermsChange: (checked: boolean) => void;
+  onAcceptTermsChange: (checked: string | boolean) => void;
   onOrderSubmit: (e: React.FormEvent) => void;
   onPaymentSuccess: () => void;
   onPaymentError: (error: string) => void;
@@ -100,7 +100,7 @@ const PaymentDialog = ({
                 <Checkbox
                   id="accept-terms"
                   checked={acceptTerms}
-                  onCheckedChange={(checked) => onAcceptTermsChange(checked as boolean)}
+                  onCheckedChange={onAcceptTermsChange}
                 />
                 <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
                   Я принимаю{" "}
