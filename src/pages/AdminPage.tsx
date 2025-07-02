@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProductManager from "@/components/ProductManager";
+import TinkoffRefund from "@/components/TinkoffRefund";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,7 +40,10 @@ const AdminPage = () => {
           Выйти
         </Button>
       </div>
-      <ProductManager />
+      <div className="p-4 space-y-6">
+        <TinkoffRefund />
+        <ProductManager />
+      </div>
     </div>
   );
 };

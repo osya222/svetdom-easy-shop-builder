@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { CreditCard, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TinkoffPaymentProps {
   amount: number;
@@ -36,102 +37,33 @@ const TinkoffPayment = ({
       console.log("ID заказа:", orderId);
       console.log("Данные клиента:", customerData);
 
-      // Параметры для Тинькофф API
-      const terminalKey = "1751034706837DEMO";
-      const password = "&5slp&Zf6ZHWd9dC";
-      
-      // Создаем уникальный OrderId для каждого платежа (максимум 50 символов)
-      const tinkoffOrderId = `${orderId.substring(0, 30)}_${Date.now()}`.substring(0, 50);
-      
-      // Функция для вычисления токена согласно официальной документации Тинькофф
-      const generateToken = async (params: Record<string, any>) => {
-        // Создаем объект для токена, исключая определенные поля
-        const tokenParams: Record<string, string | number> = {};
-        
-        // Добавляем параметры в правильном порядке согласно документации
-        Object.keys(params).forEach(key => {
-          // Исключаем поля, которые не участвуют в подписи
-          if (!['Receipt', 'NotificationURL', 'SuccessURL', 'FailURL', 'Token'].includes(key)) {
-            tokenParams[key] = params[key];
-          }
-        });
-        
-        // Добавляем пароль
-        tokenParams.Password = password;
-        
-        // Сортируем ключи по алфавиту
-        const sortedKeys = Object.keys(tokenParams).sort();
-        
-        // Создаем строку конкатенацией значений
-        const tokenString = sortedKeys.map(key => String(tokenParams[key])).join('');
-        
-        console.log("Параметры для токена:", tokenParams);
-        console.log("Отсортированные ключи:", sortedKeys);
-        console.log("Строка для хеширования:", tokenString);
-        
-        // Вычисляем SHA-256 хеш
-        const encoder = new TextEncoder();
-        const data = encoder.encode(tokenString);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        
-        console.log("Сгенерированный токен SHA-256:", hashHex);
-        return hashHex;
-      };
-
-      // Базовые параметры
-      const baseParams = {
-        TerminalKey: terminalKey,
-        Amount: amount * 100, // Сумма в копейках
-        OrderId: tinkoffOrderId,
-        Description: `Оплата заказа ${orderId} - СветДом`,
-        CustomerKey: customerData.email,
-      };
-
-      // Генерируем токен
-      const token = await generateToken(baseParams);
-
-      // Полные данные для отправки
-      const paymentData = {
-        ...baseParams,
-        Token: token,
-        Receipt: {
-          Email: customerData.email,
-          Phone: customerData.phone,
-          Taxation: "usn_income",
-          Items: [
-            {
-              Name: `Заказ ${orderId}`,
-              Price: amount * 100,
-              Quantity: 1,
-              Amount: amount * 100,
-              Tax: "none"
-            }
-          ]
+      // Вызываем серверную функцию для создания платежа
+      const { data, error } = await supabase.functions.invoke('tinkoff-payment', {
+        body: {
+          action: 'init',
+          amount,
+          orderId,
+          customerData
         }
-      };
-
-      console.log("Финальные данные для отправки:", paymentData);
-
-      // Отправляем запрос на создание платежа
-      const response = await fetch('https://securepay.tinkoff.ru/v2/Init', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(paymentData)
       });
 
-      const result = await response.json();
-      console.log("Ответ от Тинькофф:", result);
+      if (error) {
+        console.error("❌ Ошибка при вызове функции:", error);
+        throw new Error(error.message || "Ошибка при создании платежа");
+      }
 
-      if (result.Success === true && result.PaymentURL) {
-        console.log("✅ Платеж успешно инициализирован");
-        console.log("URL для оплаты:", result.PaymentURL);
+      console.log("Ответ от Тинькофф через сервер:", data);
+
+      if (data.success && data.paymentUrl) {
+        console.log("✅ Платеж успешно создан");
+        console.log("URL для оплаты:", data.paymentUrl);
+        console.log("PaymentId:", data.paymentId);
+        
+        // Сохраняем PaymentId для возможного возврата
+        (window as any).lastTinkoffPaymentId = data.paymentId;
         
         // Перенаправляем пользователя на страницу оплаты в новой вкладке
-        window.open(result.PaymentURL, '_blank');
+        window.open(data.paymentUrl, '_blank');
         
         toast({
           title: "Переход к оплате",
@@ -142,8 +74,8 @@ const TinkoffPayment = ({
         onSuccess();
         
       } else {
-        console.error("❌ Ошибка инициализации платежа:", result);
-        throw new Error(result.Message || result.Details || "Ошибка инициализации платежа");
+        console.error("❌ Неожиданный ответ от сервера:", data);
+        throw new Error("Неполучен URL для оплаты от Тинькофф");
       }
 
     } catch (error) {
