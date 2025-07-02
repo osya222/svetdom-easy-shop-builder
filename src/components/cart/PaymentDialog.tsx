@@ -15,7 +15,7 @@ interface PaymentDialogProps {
   customerData: CustomerData;
   totalPrice: number;
   acceptTerms: boolean;
-  onAcceptTermsChange: (checked: string | boolean) => void;
+  onAcceptTermsChange: (checked: boolean) => void;
   onOrderSubmit: (e: React.FormEvent) => void;
   onPaymentSuccess: () => void;
   onPaymentError: (error: string) => void;
@@ -33,6 +33,10 @@ const PaymentDialog = ({
   onPaymentSuccess,
   onPaymentError
 }: PaymentDialogProps) => {
+  const handleCheckboxChange = (checked: string | boolean) => {
+    onAcceptTermsChange(checked === true || checked === "true");
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
@@ -100,7 +104,7 @@ const PaymentDialog = ({
                 <Checkbox
                   id="accept-terms"
                   checked={acceptTerms}
-                  onCheckedChange={onAcceptTermsChange}
+                  onCheckedChange={handleCheckboxChange}
                 />
                 <Label htmlFor="accept-terms" className="text-sm cursor-pointer">
                   Я принимаю{" "}
