@@ -11,19 +11,39 @@ serve(async (req) => {
   }
 
   try {
+    console.log("=== YOOKASSA PAYMENT FUNCTION STARTED ===");
+    
     const { amount, orderId, customerData } = await req.json();
 
-    console.log("=== СОЗДАНИЕ ПЛАТЕЖА ЮКАССА ===");
-    console.log("Сумма:", amount);
-    console.log("ID заказа:", orderId);
-    console.log("Данные клиента:", customerData);
+    console.log("Входные данные:");
+    console.log("- Сумма:", amount);
+    console.log("- ID заказа:", orderId);
+    console.log("- Данные клиента:", customerData);
 
     // Получаем секретные ключи из переменных окружения
     const shopId = Deno.env.get('YOOKASSA_SHOP_ID');
     const apiKey = Deno.env.get('YOOKASSA_API_KEY');
 
+    console.log("Проверка секретов:");
+    console.log("- YOOKASSA_SHOP_ID:", shopId ? "✅ установлен" : "❌ НЕ установлен");
+    console.log("- YOOKASSA_API_KEY:", apiKey ? "✅ установлен" : "❌ НЕ установлен");
+
     if (!shopId || !apiKey) {
-      throw new Error('Не настроены ключи ЮКассы');
+      const errorMsg = 'Не настроены ключи ЮКассы в Supabase secrets';
+      console.error("❌ ОШИБКА:", errorMsg);
+      return new Response(
+        JSON.stringify({ 
+          error: errorMsg,
+          details: `shopId: ${shopId ? 'OK' : 'MISSING'}, apiKey: ${apiKey ? 'OK' : 'MISSING'}`
+        }),
+        { 
+          status: 400,
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
 
     // Создаем уникальный идентификатор платежа
@@ -38,7 +58,7 @@ serve(async (req) => {
       capture: true,
       confirmation: {
         type: "redirect",
-        return_url: req.headers.get('referer') || 'https://preview-svetdom-easy-shop-builder.lovable.app'
+        return_url: req.headers.get('referer') || 'https://c606826b-0d64-4a30-876d-0bbd1379bf6f.lovableproject.com'
       },
       description: `Оплата заказа ${orderId} - СветДом`,
       metadata: {
@@ -68,7 +88,7 @@ serve(async (req) => {
       }
     };
 
-    console.log("Данные для отправки в ЮКассу:", paymentData);
+    console.log("Данные для отправки в ЮКассу:", JSON.stringify(paymentData, null, 2));
 
     // Создаем Basic Auth заголовок
     const authHeader = btoa(`${shopId}:${apiKey}`);
@@ -76,7 +96,8 @@ serve(async (req) => {
     // Генерируем Idempotence-Key для безопасности
     const idempotenceKey = `${paymentId}_${Math.random().toString(36).substr(2, 9)}`;
 
-    console.log("Idempotence-Key:", idempotenceKey);
+    console.log("Отправляем запрос в ЮКассу...");
+    console.log("- Idempotence-Key:", idempotenceKey);
 
     // Отправляем запрос на создание платежа
     const response = await fetch('https://api.yookassa.ru/v3/payments', {
@@ -89,16 +110,32 @@ serve(async (req) => {
       body: JSON.stringify(paymentData)
     });
 
-    console.log("Статус ответа ЮКассы:", response.status);
+    console.log("Ответ от ЮКассы:");
+    console.log("- Статус:", response.status);
+    console.log("- Статус текст:", response.statusText);
+
+    const responseText = await response.text();
+    console.log("- Тело ответа:", responseText);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("❌ Ошибка HTTP от ЮКассы:", response.status, errorText);
-      throw new Error(`HTTP Error ${response.status}: ${errorText}`);
+      console.error("❌ Ошибка HTTP от ЮКассы:", response.status, responseText);
+      return new Response(
+        JSON.stringify({ 
+          error: `ЮКасса вернула ошибку ${response.status}`,
+          details: responseText
+        }),
+        { 
+          status: response.status,
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
 
-    const result = await response.json();
-    console.log("Ответ от ЮКассы:", result);
+    const result = JSON.parse(responseText);
+    console.log("✅ Успешный ответ от ЮКассы:", JSON.stringify(result, null, 2));
 
     return new Response(
       JSON.stringify(result),
@@ -111,12 +148,14 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("❌ КРИТИЧЕСКАЯ ОШИБКА при создании платежа ЮКасса:", error);
+    console.error("❌ КРИТИЧЕСКАЯ ОШИБКА в Edge Function:", error);
+    console.error("Стек ошибки:", error.stack);
     
     return new Response(
       JSON.stringify({ 
-        error: error.message || 'Неизвестная ошибка',
-        details: error.toString()
+        error: 'Внутренняя ошибка сервера',
+        details: error.message,
+        stack: error.stack
       }),
       { 
         status: 500,
