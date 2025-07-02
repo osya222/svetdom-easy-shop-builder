@@ -37,7 +37,7 @@ const TinkoffPayment = ({
       console.log("Данные клиента:", customerData);
 
       // Параметры для Тинькофф API
-      const terminalKey = "1751034706876";
+      const terminalKey = "live_SNIlr1WeN16M5mNJoK-s51uI2NdClNA6GuYu6X2hxxc";
       const password = "^uJsdGqXM2^^*Bs4";
       
       // Создаем уникальный OrderId для каждого платежа (максимум 50 символов)
