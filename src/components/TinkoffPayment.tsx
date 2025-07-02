@@ -38,10 +38,9 @@ const TinkoffPayment = ({
 
       // Параметры для Тинькофф API
       const terminalKey = "1751034706837DEMO";
-      const password = "&5slp&Zf6ZHWd9dC";
       
-      // Создаем уникальный OrderId для каждого платежа
-      const tinkoffOrderId = `${orderId}_${Date.now()}`;
+      // Создаем уникальный OrderId для каждого платежа (максимум 50 символов)
+      const tinkoffOrderId = `${orderId.substring(0, 30)}_${Date.now()}`.substring(0, 50);
       
       const paymentData = {
         TerminalKey: terminalKey,
@@ -52,10 +51,19 @@ const TinkoffPayment = ({
         NotificationURL: `${window.location.origin}/api/tinkoff-notification`,
         SuccessURL: `${window.location.origin}/?payment=success`,
         FailURL: `${window.location.origin}/?payment=fail`,
-        DATA: {
+        Receipt: {
           Email: customerData.email,
           Phone: customerData.phone,
-          Name: `${customerData.firstName} ${customerData.lastName}`
+          Taxation: "usn_income",
+          Items: [
+            {
+              Name: `Заказ ${orderId}`,
+              Price: amount * 100,
+              Quantity: 1,
+              Amount: amount * 100,
+              Tax: "none"
+            }
+          ]
         }
       };
 
@@ -73,7 +81,7 @@ const TinkoffPayment = ({
       const result = await response.json();
       console.log("Ответ от Тинькофф:", result);
 
-      if (result.Success && result.PaymentURL) {
+      if (result.Success === true && result.PaymentURL) {
         console.log("✅ Платеж успешно инициализирован");
         console.log("URL для оплаты:", result.PaymentURL);
         
@@ -87,7 +95,7 @@ const TinkoffPayment = ({
         
       } else {
         console.error("❌ Ошибка инициализации платежа:", result);
-        throw new Error(result.Message || "Ошибка инициализации платежа");
+        throw new Error(result.Message || result.Details || "Ошибка инициализации платежа");
       }
 
     } catch (error) {
