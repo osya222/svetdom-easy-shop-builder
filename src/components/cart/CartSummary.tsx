@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { QrCode, Trash2 } from "lucide-react";
+import { CreditCard, Trash2 } from "lucide-react";
 import { CartItem } from "@/types/product";
 
 interface CartSummaryProps {
@@ -60,8 +60,8 @@ const CartSummary = ({ items, totalPrice, isFormValid, onShowPayment, onClearCar
             onClick={onShowPayment}
             disabled={!isFormValid}
           >
-            <QrCode className="h-5 w-5 mr-2" />
-            Оплатить по СБП
+            <CreditCard className="h-5 w-5 mr-2" />
+            Оплатить
           </Button>
           
           <Button 
