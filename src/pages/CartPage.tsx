@@ -118,11 +118,11 @@ ${itemsList}
       `.trim();
       
       console.log("🚀 Отправка через Web3Forms...");
-      console.log("Access Key:", 'bf3362d5-6685-4f10-b7e7-7ee842098073');
+      console.log("Access Key:", '501aa112-a018-47c6-91fe-ef8cb1837d14');
       console.log("Подготовленное сообщение:", orderMessage);
       
       const formData = new FormData();
-      formData.append('access_key', 'bf3362d5-6685-4f10-b7e7-7ee842098073');
+      formData.append('access_key', '501aa112-a018-47c6-91fe-ef8cb1837d14');
       formData.append('name', `${customerData.firstName} ${customerData.lastName}`);
       formData.append('email', customerData.email);
       formData.append('phone', customerData.phone);
@@ -131,7 +131,7 @@ ${itemsList}
       formData.append('from_name', 'СветДом - Интернет магазин');
       formData.append('to_name', 'Администратор СветДом');
       formData.append('replyto', customerData.email);
-      formData.append('cc', 'pavel220585gpt@gmail.com');
+      formData.append('cc', 'ipsheva08@yandex.ru');
       
       console.log("FormData подготовлена. Отправляем запрос...");
       
@@ -171,11 +171,11 @@ ${itemsList}
       
       const orderId = `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      toast({
-        title: "Проблема с отправкой заказа",
-        description: `Технические неполадки. Пожалуйста, позвоните: +7 903 003-31-48 или напишите: pavel220585gpt@gmail.com. Заказ: ${orderId}`,
-        variant: "destructive",
-      });
+        toast({
+          title: "Проблема с отправкой заказа",
+          description: `Технические неполадки. Пожалуйста, позвоните: +7 903 003-31-48 или напишите: ipsheva08@yandex.ru. Заказ: ${orderId}`,
+          variant: "destructive",
+        });
     }
     
     console.log("=== КОНЕЦ ОБРАБОТКИ ЗАКАЗА ===");

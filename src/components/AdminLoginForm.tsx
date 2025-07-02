@@ -19,7 +19,7 @@ const AdminLoginForm = () => {
     setIsLoading(true);
 
     // Простая проверка учетных данных
-    if (username === "admin" && password === "admin") {
+    if (username === "admin" && password === "123654") {
       // Сохраняем состояние входа в localStorage
       localStorage.setItem("adminLoggedIn", "true");
       toast({
