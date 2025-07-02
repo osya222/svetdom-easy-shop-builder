@@ -15,7 +15,7 @@ interface PaymentDialogProps {
   customerData: CustomerData;
   totalPrice: number;
   acceptTerms: boolean;
-  onAcceptTermsChange: (checked: boolean | string) => void;
+  onAcceptTermsChange: (checked: boolean) => void;
   onOrderSubmit: (e: React.FormEvent) => void;
   onPaymentSuccess: () => void;
   onPaymentError: (error: string) => void;
@@ -34,7 +34,9 @@ const PaymentDialog = ({
   onPaymentError
 }: PaymentDialogProps) => {
   const handleCheckboxChange = (checked: boolean | string) => {
-    onAcceptTermsChange(checked);
+    // Convert to boolean: true if checked is true or "true", false otherwise
+    const booleanValue = checked === true || checked === "true";
+    onAcceptTermsChange(booleanValue);
   };
 
   return (

@@ -37,7 +37,7 @@ const CartPage = () => {
     setCustomerData(prev => ({ ...prev, [field]: value }));
   };
 
-  const isFormValid = customerData.firstName && customerData.lastName && customerData.phone && customerData.email;
+  const isFormValid = !!(customerData.firstName && customerData.lastName && customerData.phone && customerData.email);
 
   const handlePaymentSuccess = () => {
     console.log("✅ Платеж успешно завершен");
@@ -70,10 +70,8 @@ const CartPage = () => {
     });
   };
 
-  const handleAcceptTermsChange = (checked: boolean | string) => {
-    // Convert to boolean: true if checked is true or "true", false otherwise
-    const booleanValue = checked === true || checked === "true";
-    setAcceptTerms(booleanValue);
+  const handleAcceptTermsChange = (checked: boolean) => {
+    setAcceptTerms(checked);
   };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
