@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -70,6 +71,7 @@ const CartPage = () => {
   };
 
   const handleAcceptTermsChange = (checked: boolean | string) => {
+    // Convert to boolean: true if checked is true or "true", false otherwise
     const booleanValue = checked === true || checked === "true";
     setAcceptTerms(booleanValue);
   };
