@@ -99,21 +99,6 @@ const PaymentDialog = ({
                   />
                 </div>
 
-                <div className="p-4 border rounded-lg">
-                  <h4 className="font-medium mb-2">Оплата по СБП</h4>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    QR-код для быстрых платежей
-                  </p>
-                  <Button 
-                    onClick={onOrderSubmit}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white"
-                    disabled={!acceptTerms}
-                    size="lg"
-                  >
-                    <QrCode className="h-5 w-5 mr-2" />
-                    Оплатить через СБП
-                  </Button>
-                </div>
               </div>
 
               {/* Чекбокс согласия */}
