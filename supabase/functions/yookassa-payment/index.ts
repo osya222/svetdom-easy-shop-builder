@@ -10,6 +10,38 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  if (req.method === 'GET') {
+    return new Response(
+      JSON.stringify({ 
+        message: 'YooKassa Payment API',
+        status: 'active',
+        methods: ['POST']
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ 
+        error: 'Method not allowed',
+        message: 'Только POST запросы поддерживаются'
+      }),
+      { 
+        status: 405,
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
+  }
+
   try {
     console.log("=== YOOKASSA PAYMENT FUNCTION STARTED ===");
     
