@@ -13,7 +13,8 @@ serve(async (req) => {
   try {
     console.log("=== TINKOFF PAYMENT FUNCTION STARTED ===");
     
-    const { amount, orderId, customerData, action = 'init' } = await req.json();
+    const requestBody = await req.json();
+    const { amount, orderId, customerData, action = 'init', paymentId } = requestBody;
 
     console.log("Входные данные:");
     console.log("- Действие:", action);
@@ -161,7 +162,6 @@ serve(async (req) => {
 
     } else if (action === 'cancel') {
       // Возврат платежа
-      const { paymentId } = await req.json();
       
       if (!paymentId) {
         throw new Error("PaymentId обязателен для возврата");
