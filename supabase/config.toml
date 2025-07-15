@@ -1,1 +1,7 @@
 project_id = "mcszrtlpbsesanylyzmi"
+
+[functions.tinkoff-payment]
+verify_jwt = false
+
+[functions.yookassa-payment]
+verify_jwt = false
