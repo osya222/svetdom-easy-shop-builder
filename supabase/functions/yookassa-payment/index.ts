@@ -110,6 +110,13 @@ serve(async (req) => {
     // Create unique payment ID
     const paymentId = `${orderId}_${Date.now()}_YK`;
     
+    // Clean phone number for YooKassa format (remove spaces, brackets, dashes)
+    const cleanPhone = (phone: string) => {
+      return phone.replace(/[\s\(\)\-]/g, '');
+    };
+    
+    const cleanedPhone = cleanPhone(customerData.phone);
+    
     // Prepare payment data
     const paymentData = {
       amount: {
@@ -125,13 +132,13 @@ serve(async (req) => {
       metadata: {
         order_id: orderId,
         customer_email: customerData.email,
-        customer_phone: customerData.phone
+        customer_phone: cleanedPhone
       },
       receipt: {
         customer: {
           full_name: `${customerData.firstName} ${customerData.lastName}`,
           email: customerData.email,
-          phone: customerData.phone
+          phone: cleanedPhone
         },
         items: [
           {
