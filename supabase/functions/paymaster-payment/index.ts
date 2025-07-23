@@ -62,12 +62,12 @@ serve(async (req) => {
       // Create unique payment ID
       const paymentId = `PM_${orderId}_${Date.now()}`;
       
-      // Convert amount from rubles to kopecks
-      const amountInKopecks = Math.round(amount * 100);
+      // Paymaster expects amount in rubles, not kopecks
+      const amountInRubles = amount;
       
-      console.log("💰 Amount conversion:", {
+      console.log("💰 Amount:", {
         originalAmount: amount,
-        amountInKopecks
+        amountForPaymaster: amountInRubles
       });
 
       // Generate signature for Paymaster
@@ -92,7 +92,7 @@ serve(async (req) => {
       // Prepare payment parameters
       const paymentParams = {
         LMI_MERCHANT_ID: merchantId,
-        LMI_PAYMENT_AMOUNT: amountInKopecks.toString(),
+        LMI_PAYMENT_AMOUNT: amountInRubles.toString(),
         LMI_CURRENCY: 'RUB',
         LMI_PAYMENT_NO: paymentId,
         LMI_PAYMENT_DESC: `Заказ ${orderId} - Светодиодные светильники`,
