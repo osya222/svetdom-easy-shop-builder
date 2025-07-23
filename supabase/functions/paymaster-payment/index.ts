@@ -71,7 +71,7 @@ serve(async (req) => {
       });
 
       // Generate signature for Paymaster
-      const generateSignature = (params: Record<string, any>, secretKey: string): string => {
+      const generateSignature = async (params: Record<string, any>, secretKey: string): Promise<string> => {
         // Sort parameters by key
         const sortedKeys = Object.keys(params).sort();
         const signatureString = sortedKeys.map(key => `${key}=${params[key]}`).join(';') + `;${secretKey}`;
@@ -81,13 +81,12 @@ serve(async (req) => {
           signatureString: signatureString.substring(0, 100) + "..."
         });
         
-        // Create MD5 hash
+        // Create SHA-256 hash (MD5 not supported in Deno)
         const encoder = new TextEncoder();
         const data = encoder.encode(signatureString);
-        return crypto.subtle.digest('MD5', data).then(hashBuffer => {
-          const hashArray = Array.from(new Uint8Array(hashBuffer));
-          return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        });
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
       };
 
       // Prepare payment parameters
