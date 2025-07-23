@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.yookassa-payment]
 verify_jwt = false
+
+[functions.paymaster-payment]
+verify_jwt = false
