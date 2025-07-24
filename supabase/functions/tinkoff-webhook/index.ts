@@ -14,7 +14,12 @@ Deno.serve(async (req) => {
   }
 
   try {
-    if (req.method !== 'POST') {
+    console.log(`📊 Request method: ${req.method}`);
+    console.log(`📊 Request URL: ${req.url}`);
+    
+    // For testing, allow both GET and POST
+    if (req.method !== 'POST' && req.method !== 'GET') {
+      console.log(`❌ Unsupported method: ${req.method}`);
       return new Response(
         JSON.stringify({ error: 'Method not allowed' }),
         { 
