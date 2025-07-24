@@ -103,84 +103,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse webhook data
-    const webhookData = await req.json();
-    console.log('📥 Webhook data received:', JSON.stringify(webhookData, null, 2));
+    console.log('🔄 Redirecting to proxy URL...');
 
-    // Extract required fields
-    const { PaymentId, Status, Token } = webhookData;
-
-    if (!PaymentId || !Status || !Token) {
-      console.error('❌ Missing required fields:', { PaymentId, Status, Token: !!Token });
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: PaymentId, Status, Token' }),
-        { 
-          status: 400, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Verify signature
-    if (!verifySignature(webhookData, Token)) {
-      console.error('❌ Invalid signature');
-      return new Response(
-        JSON.stringify({ error: 'Invalid signature' }),
-        { 
-          status: 401, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    console.log('✅ Signature verified successfully');
-
-    // Map Tinkoff status to our internal status
-    let internalStatus: string;
-    switch (Status) {
-      case 'CONFIRMED':
-        internalStatus = 'CONFIRMED';
-        break;
-      case 'REJECTED':
-      case 'CANCELED':
-        internalStatus = 'FAILED';
-        break;
-      case 'REFUNDED':
-        internalStatus = 'REFUNDED';
-        break;
-      default:
-        internalStatus = 'PENDING';
-        console.log(`⚠️ Unknown status: ${Status}, setting to PENDING`);
-    }
-
-    // Update payment status in database
-    const updateSuccess = await updatePaymentStatus(PaymentId, internalStatus, webhookData);
-
-    if (!updateSuccess) {
-      return new Response(
-        JSON.stringify({ error: 'Failed to update payment status' }),
-        { 
-          status: 500, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      );
-    }
-
-    // Log final status
-    console.log(`🎉 Payment ${PaymentId} processed successfully with status: ${internalStatus}`);
-
-    // Return success response that Tinkoff expects
-    return new Response('OK', {
-      status: 200,
-      headers: { ...corsHeaders, 'Content-Type': 'text/plain' }
+    // Return 307 redirect to proxy URL
+    return new Response(null, {
+      status: 307,
+      headers: {
+        ...corsHeaders,
+        'Location': 'https://cb.boogienwoogie.com/webhook/tbank'
+      }
     });
 
   } catch (error) {
     console.error('❌ Webhook processing error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'webhook data is invalid' }),
       { 
-        status: 500, 
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
