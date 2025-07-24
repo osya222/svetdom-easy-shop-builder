@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.paymaster-payment]
 verify_jwt = false
+
+[functions.tinkoff-webhook]
+verify_jwt = false
