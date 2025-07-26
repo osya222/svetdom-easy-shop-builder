@@ -164,6 +164,14 @@ serve(async (req) => {
         CustomerKey: customerData.email || 'guest',
       };
 
+      console.log("📊 Base params for token generation:", {
+        TerminalKey: cleanTerminalKey.substring(0, 10) + "...",
+        Amount: baseParams.Amount,
+        OrderId: baseParams.OrderId,
+        Description: baseParams.Description,
+        CustomerKey: baseParams.CustomerKey
+      });
+
       const token = await generateToken(baseParams);
 
       const paymentData = {
