@@ -1,6 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
 
 console.log('🚀 NSPK Webhook Function Started');
+console.log('📍 Webhook URL: https://mcszrtlpbsesanylyzmi.supabase.co/functions/v1/tinkoff-webhook');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
