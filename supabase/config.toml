@@ -1,15 +1,12 @@
 project_id = "mcszrtlpbsesanylyzmi"
 
-[functions.tinkoff-payment]
-verify_jwt = false
-
 [functions.yookassa-payment]
 verify_jwt = false
 
 [functions.paymaster-payment]
 verify_jwt = false
 
-[functions.tinkoff-webhook]
+[functions.nspk-webhook]
 verify_jwt = false
 
 [functions.paymaster-webhook]
