@@ -94,11 +94,13 @@ Deno.serve(async (req) => {
     console.log('🔄 Redirecting to Т-Банк proxy URL...');
 
     // Return 307 redirect to Т-Банк proxy as required
+    // Pass all the original data in the redirect
     return new Response(null, {
       status: 307,
       headers: {
         ...corsHeaders,
-        'Location': 'https://cb.boogienwoogie.com/webhook/tbank'
+        'Location': 'https://cb.boogienwoogie.com/webhook/tbank',
+        'Content-Type': 'application/x-www-form-urlencoded'
       }
     });
 
