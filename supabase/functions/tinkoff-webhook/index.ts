@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
     }
 
     // Get environment variables
-    const nspkSecretKey = Deno.env.get('NSPK_SECRET_KEY');
+    const nspkSecretKey = Deno.env.get('NSPK_SECRET_KEY'); // Optional for signature validation
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -85,8 +85,8 @@ Deno.serve(async (req) => {
       hasSupabaseKey: !!supabaseKey
     });
 
-    if (!nspkSecretKey || !supabaseUrl || !supabaseKey) {
-      console.error('❌ Missing required environment variables');
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('❌ Missing required Supabase environment variables');
       return new Response(
         JSON.stringify({ error: 'Server configuration error' }),
         { 
@@ -124,8 +124,8 @@ Deno.serve(async (req) => {
       signature: webhookData.signature ? webhookData.signature.substring(0, 16) + '...' : 'none'
     });
 
-    // Validate signature if present
-    if (webhookData.signature) {
+    // Validate signature if present and secret key is configured
+    if (webhookData.signature && nspkSecretKey) {
       const isValidSignature = await validateNSPKSignature(webhookData, webhookData.signature, nspkSecretKey);
       if (!isValidSignature) {
         console.error('❌ Invalid signature');
@@ -138,6 +138,8 @@ Deno.serve(async (req) => {
         );
       }
       console.log('✅ Signature validated successfully');
+    } else if (webhookData.signature && !nspkSecretKey) {
+      console.log('⚠️ Signature present but no secret key configured - skipping validation');
     } else {
       console.log('⚠️ No signature provided in webhook data');
     }
