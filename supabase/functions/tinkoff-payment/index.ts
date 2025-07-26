@@ -78,7 +78,10 @@ serve(async (req) => {
 
     console.log("🔑 Environment check:", {
       hasTerminalKey: !!terminalKey,
-      hasPassword: !!password
+      hasPassword: !!password,
+      terminalKeyLength: terminalKey?.length || 0,
+      passwordLength: password?.length || 0,
+      terminalKeyFormat: terminalKey?.substring(0, 10) + "...",
     });
 
     if (!terminalKey || !password) {
@@ -95,6 +98,17 @@ serve(async (req) => {
       );
     }
 
+    // Trim credentials to remove any whitespace
+    const cleanTerminalKey = terminalKey.trim();
+    const cleanPassword = password.trim();
+    
+    console.log("🧹 Cleaned credentials:", {
+      originalTerminalKeyLength: terminalKey.length,
+      cleanedTerminalKeyLength: cleanTerminalKey.length,
+      originalPasswordLength: password.length,
+      cleanedPasswordLength: cleanPassword.length
+    });
+
     // Token generation function
     const generateToken = async (params: Record<string, any>): Promise<string> => {
       const tokenParams: Record<string, string | number> = {};
@@ -106,7 +120,7 @@ serve(async (req) => {
         }
       });
       
-      tokenParams.Password = password;
+      tokenParams.Password = cleanPassword;
       
       const sortedKeys = Object.keys(tokenParams).sort();
       const tokenString = sortedKeys.map(key => String(tokenParams[key])).join('');
@@ -143,7 +157,7 @@ serve(async (req) => {
       const tinkoffOrderId = `${orderId.substring(0, 30)}_${Date.now()}`.substring(0, 50);
       
       const baseParams = {
-        TerminalKey: terminalKey,
+        TerminalKey: cleanTerminalKey,
         Amount: Math.round(amount * 100),
         OrderId: tinkoffOrderId,
         Description: `Заказ ${orderId} - СветДом`,
@@ -220,7 +234,7 @@ serve(async (req) => {
       }
 
       const baseParams = {
-        TerminalKey: terminalKey,
+        TerminalKey: cleanTerminalKey,
         PaymentId: paymentId
       };
 
