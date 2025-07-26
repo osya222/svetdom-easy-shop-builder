@@ -17,6 +17,12 @@ Deno.serve(async (req) => {
     console.log(`📊 Request method: ${req.method}`);
     console.log(`📊 Request URL: ${req.url}`);
     
+    // Log all headers for debugging
+    console.log('📨 Request headers:');
+    for (const [key, value] of req.headers.entries()) {
+      console.log(`  ${key}: ${value}`);
+    }
+    
     // Only accept POST requests for Т-Банк webhooks
     if (req.method !== 'POST') {
       console.log(`❌ Unsupported method: ${req.method}`);
@@ -29,14 +35,49 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse request body to validate it's proper JSON
+    // Get content type to handle different formats
+    const contentType = req.headers.get('content-type') || '';
+    console.log(`📋 Content-Type: ${contentType}`);
+
+    // Parse request body based on content type
     let webhookData;
+    let rawBody;
+    
     try {
-      const body = await req.text();
-      console.log('📥 Raw request body:', body.substring(0, 200) + '...');
-      webhookData = JSON.parse(body);
+      rawBody = await req.text();
+      console.log('📥 Raw request body (first 500 chars):', rawBody.substring(0, 500));
+      console.log('📏 Body length:', rawBody.length);
+      
+      // Handle different content types
+      if (contentType.includes('application/json')) {
+        console.log('🔄 Parsing as JSON...');
+        webhookData = JSON.parse(rawBody);
+      } else if (contentType.includes('application/x-www-form-urlencoded')) {
+        console.log('🔄 Parsing as form-urlencoded...');
+        const params = new URLSearchParams(rawBody);
+        webhookData = {};
+        for (const [key, value] of params.entries()) {
+          webhookData[key] = value;
+        }
+      } else {
+        // Try to parse as JSON first, then as form data
+        console.log('🔄 Unknown content type, trying JSON first...');
+        try {
+          webhookData = JSON.parse(rawBody);
+          console.log('✅ Successfully parsed as JSON');
+        } catch {
+          console.log('🔄 JSON failed, trying form-urlencoded...');
+          const params = new URLSearchParams(rawBody);
+          webhookData = {};
+          for (const [key, value] of params.entries()) {
+            webhookData[key] = value;
+          }
+          console.log('✅ Successfully parsed as form-urlencoded');
+        }
+      }
     } catch (error) {
-      console.error('❌ Invalid JSON body:', error);
+      console.error('❌ Body parsing error:', error);
+      console.log('📄 Raw body that failed:', rawBody);
       return new Response(
         JSON.stringify({ error: 'webhook data is invalid' }),
         { 
@@ -46,12 +87,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('📊 Т-Банк webhook data:', {
-      transaction_id: webhookData.transaction_id,
-      amount: webhookData.amount,
-      status: webhookData.status,
-      merchant_id: webhookData.merchant_id || 'not provided'
-    });
+    console.log('📊 Parsed webhook data:', JSON.stringify(webhookData, null, 2));
 
     // Log expected Т-Банк parameters
     const requiredParams = ['transaction_id', 'amount', 'status'];
@@ -63,19 +99,57 @@ Deno.serve(async (req) => {
       console.log('✅ All required Т-Банк parameters present');
     }
 
-    console.log('🔄 Redirecting to Т-Банк proxy URL...');
+    // Prepare data for forwarding
+    const forwardData = {
+      transaction_id: webhookData.transaction_id,
+      amount: webhookData.amount,
+      status: webhookData.status,
+      merchant_id: webhookData.merchant_id,
+      ...webhookData // Include all other fields
+    };
 
-    // Return 307 redirect to Т-Банк proxy as required
-    return new Response(null, {
-      status: 307,
-      headers: {
-        ...corsHeaders,
-        'Location': 'https://cb.boogienwoogie.com/webhook/tbank'
+    console.log('📤 Data to forward:', JSON.stringify(forwardData, null, 2));
+
+    // Forward to external webhook with proper error handling
+    try {
+      console.log('🔄 Forwarding to external webhook...');
+      
+      const forwardResponse = await fetch('https://cb.boogienwoogie.com/webhook/tbank', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Supabase-Webhook-Forwarder'
+        },
+        body: JSON.stringify(forwardData)
+      });
+
+      console.log(`📨 Forward response status: ${forwardResponse.status}`);
+      
+      if (!forwardResponse.ok) {
+        const errorText = await forwardResponse.text();
+        console.error('❌ Forward failed:', errorText);
+      } else {
+        const responseText = await forwardResponse.text();
+        console.log('✅ Forward successful:', responseText.substring(0, 200));
       }
-    });
+
+    } catch (forwardError) {
+      console.error('❌ Forward request failed:', forwardError);
+    }
+
+    // Always return success to T-Bank
+    return new Response(
+      JSON.stringify({ success: true, message: 'webhook processed' }),
+      { 
+        status: 200, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
     console.error('❌ Webhook processing error:', error);
+    console.error('❌ Error stack:', error.stack);
+    
     // Return the exact response format required by Т-Банк
     return new Response(
       JSON.stringify({ error: 'webhook data is invalid' }),
