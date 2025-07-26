@@ -1,5 +1,8 @@
 project_id = "mcszrtlpbsesanylyzmi"
 
+[functions.tinkoff-webhook]
+verify_jwt = false
+
 [functions.yookassa-payment]
 verify_jwt = false
 
