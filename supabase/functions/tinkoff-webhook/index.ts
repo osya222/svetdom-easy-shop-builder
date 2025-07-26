@@ -13,6 +13,25 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Handle GET for health check  
+  if (req.method === 'GET') {
+    console.log('🔍 Health check request received');
+    return new Response(
+      JSON.stringify({ 
+        status: 'OK',
+        message: 'Tinkoff webhook is running',
+        timestamp: new Date().toISOString(),
+        url: req.url
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
+  }
+
   try {
     console.log(`📊 Request method: ${req.method}`);
     console.log(`📊 Request URL: ${req.url}`);
