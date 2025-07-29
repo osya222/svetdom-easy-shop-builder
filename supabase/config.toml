@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.paymaster-webhook]
 verify_jwt = false
+
+[functions.qr-manager-payment]
+verify_jwt = false
+
+[functions.qr-manager-webhook]
+verify_jwt = false

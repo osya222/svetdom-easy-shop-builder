@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import TinkoffPayment from "@/components/TinkoffPayment";
 import YookassaPayment from "@/components/YookassaPayment";
 import PaymasterPayment from "@/components/PaymasterPayment";
+import QRManagerPayment from "@/components/QRManagerPayment";
 import { CustomerData } from "./CustomerForm";
 
 interface PaymentDialogProps {
@@ -106,6 +107,20 @@ const PaymentDialog = ({
                     Безопасная оплата через Paymaster
                   </p>
                   <PaymasterPayment
+                    amount={totalPrice}
+                    orderId={(window as any).currentOrderId || `ORDER_${Date.now()}`}
+                    customerData={customerData}
+                    onSuccess={onPaymentSuccess}
+                    onError={onPaymentError}
+                  />
+                </div>
+
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-2">QR Manager</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Оплата через QR код СБП
+                  </p>
+                  <QRManagerPayment
                     amount={totalPrice}
                     orderId={(window as any).currentOrderId || `ORDER_${Date.now()}`}
                     customerData={customerData}
