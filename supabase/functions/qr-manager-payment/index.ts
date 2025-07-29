@@ -39,7 +39,12 @@ serve(async (req) => {
     // Получаем учетные данные QR Manager из переменных окружения
     const qrManagerApiKey = Deno.env.get('QR_MANAGER_API_KEY')
     const qrManagerMerchantId = Deno.env.get('QR_MANAGER_MERCHANT_ID')
-    const qrManagerApiUrl = Deno.env.get('QR_MANAGER_API_URL') || 'https://api.qrmanager.ru'
+    let qrManagerApiUrl = Deno.env.get('QR_MANAGER_API_URL') || 'https://api.qrmanager.ru'
+    
+    // Добавляем протокол если он отсутствует
+    if (!qrManagerApiUrl.startsWith('http://') && !qrManagerApiUrl.startsWith('https://')) {
+      qrManagerApiUrl = 'https://' + qrManagerApiUrl
+    }
 
     if (!qrManagerApiKey || !qrManagerMerchantId) {
       console.error("❌ Отсутствуют учетные данные QR Manager")
