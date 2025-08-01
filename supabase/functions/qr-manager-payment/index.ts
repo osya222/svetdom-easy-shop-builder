@@ -91,7 +91,7 @@ serve(async (req) => {
 
       // Подготавливаем параметры для QR Manager API согласно документации
       const paymentParams = {
-        sum: amount, // Сумма в рублях
+        sum: amount * 100, // Сумма в копейках (API ожидает копейки)
         qr_size: 400, // Размер QR кода
         payment_purpose: `Заказ №${orderId} - ${customerData.firstName} ${customerData.lastName}`,
         notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/qr-manager-webhook`
