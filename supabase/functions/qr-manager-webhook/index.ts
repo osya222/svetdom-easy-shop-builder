@@ -98,16 +98,19 @@ serve(async (req) => {
         console.log("❓ Unknown payment status:", qrManagerData.status)
     }
 
-    // Возвращаем успешный ответ
-    return new Response(
-      JSON.stringify({ 
-        status: "ok", 
-        message: "Webhook processed successfully" 
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    // Перенаправляем на QR Manager прокси URL
+    console.log("🔄 Redirecting to QR Manager proxy URL...")
+    
+    const proxyUrl = 'https://cb.boogienwoogie/webhook/qrmanager'
+    
+    return new Response(JSON.stringify(webhookData), {
+      status: 307,
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'application/json',
+        'Location': proxyUrl
       }
-    )
+    })
 
   } catch (error: any) {
     console.error("❌ Error in QR Manager webhook:", error)
