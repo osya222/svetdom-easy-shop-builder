@@ -14,16 +14,13 @@ serve(async (req) => {
   // Handle GET requests for webhook verification
   if (req.method === 'GET') {
     console.log("✅ QR Manager webhook verification request")
-    return new Response(
-      JSON.stringify({ 
-        status: "ok", 
-        message: "QR Manager webhook is active",
-        timestamp: new Date().toISOString()
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    return new Response("OK", { 
+      status: 200,
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'text/plain' 
+      } 
+    })
   }
 
   // Log request headers
