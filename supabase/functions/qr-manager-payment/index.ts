@@ -8,6 +8,7 @@ interface CustomerData {
   lastName: string;
   phone: string;
   email: string;
+  comment?: string;
 }
 
 interface PaymentRequest {
@@ -39,12 +40,7 @@ serve(async (req) => {
     // Получаем учетные данные QR Manager из переменных окружения
     const qrManagerApiKey = Deno.env.get('QR_MANAGER_API_KEY')
     const qrManagerMerchantId = Deno.env.get('QR_MANAGER_MERCHANT_ID')
-    let qrManagerApiUrl = Deno.env.get('QR_MANAGER_API_URL') || 'https://api.qrmanager.ru'
-    
-    // Добавляем протокол если он отсутствует
-    if (!qrManagerApiUrl.startsWith('http://') && !qrManagerApiUrl.startsWith('https://')) {
-      qrManagerApiUrl = 'https://' + qrManagerApiUrl
-    }
+    const qrManagerApiUrl = Deno.env.get('QR_MANAGER_API_URL') || 'https://app.wapiserv.qrm.ooo'
 
     if (!qrManagerApiKey || !qrManagerMerchantId) {
       console.error("❌ Отсутствуют учетные данные QR Manager")
@@ -76,41 +72,27 @@ serve(async (req) => {
         )
       }
 
-      // Генерируем уникальный ID платежа
-      const paymentId = `QRM_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
       console.log("💳 Создание платежа QR Manager:", {
-        paymentId,
         amount,
         orderId,
-        merchant: qrManagerMerchantId
+        customer: `${customerData.firstName} ${customerData.lastName}`
       })
 
-      // Подготавливаем параметры для QR Manager API
+      // Подготавливаем параметры для QR Manager API согласно документации
       const paymentParams = {
-        merchant_id: qrManagerMerchantId,
-        payment_id: paymentId,
-        order_id: orderId,
-        amount: amount, // Сумма в копейках
-        currency: 'RUB',
-        description: `Заказ №${orderId}`,
-        customer: {
-          name: `${customerData.firstName} ${customerData.lastName}`,
-          email: customerData.email,
-          phone: customerData.phone
-        },
-        success_url: `${req.headers.get('origin')}/payment-success`,
-        fail_url: `${req.headers.get('origin')}/payment-canceled`,
+        sum: amount, // Сумма в рублях
+        qr_size: 400, // Размер QR кода
+        payment_purpose: `Заказ №${orderId} - ${customerData.firstName} ${customerData.lastName}`,
         notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/qr-manager-webhook`
       }
 
       try {
-        // Вызываем API QR Manager для создания платежа
-        const response = await fetch(`${qrManagerApiUrl}/api/v1/payment/create`, {
+        // Вызываем API QR Manager для создания QR кода
+        const response = await fetch(`${qrManagerApiUrl}/operations/qr-code/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${qrManagerApiKey}`,
+            'X-Api-Key': qrManagerApiKey,
             'Accept': 'application/json'
           },
           body: JSON.stringify(paymentParams)
@@ -128,35 +110,38 @@ serve(async (req) => {
         }
 
         const qrManagerResponse = JSON.parse(responseText)
+        console.log("✅ Успешный ответ QR Manager:", qrManagerResponse)
 
-        return new Response(
-          JSON.stringify({
-            success: true,
-            paymentId: paymentId,
-            qrData: qrManagerResponse.qr_data || qrManagerResponse.qr_code,
-            paymentUrl: qrManagerResponse.payment_url || qrManagerResponse.redirect_url,
-            qrManagerData: qrManagerResponse
-          }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-          }
-        )
+        // Проверяем наличие QR кода в ответе
+        if (qrManagerResponse && qrManagerResponse.results && qrManagerResponse.results.qr_img) {
+          return new Response(
+            JSON.stringify({
+              success: true,
+              qr_img: qrManagerResponse.results.qr_img,
+              payment_id: qrManagerResponse.results.payment_id || orderId,
+              qr_data: qrManagerResponse.results.qr_data,
+              amount: amount,
+              orderId: orderId
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        } else {
+          throw new Error('QR код не получен в ответе от API')
+        }
 
       } catch (apiError: any) {
         console.error("❌ Ошибка API QR Manager:", apiError)
         
-        // Возвращаем mock ответ для тестирования
         return new Response(
           JSON.stringify({
-            success: true,
-            paymentId: paymentId,
-            qrData: `QR_CODE_DATA_${paymentId}`,
-            paymentUrl: `https://pay.qrmanager.ru/payment/${paymentId}`,
-            mock: true,
-            originalError: apiError.message
+            success: false,
+            error: `Ошибка создания QR кода: ${apiError.message}`
           }),
           { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500
           }
         )
       }

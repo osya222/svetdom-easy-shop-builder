@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ProductManager from "@/components/ProductManager";
 import TinkoffRefund from "@/components/TinkoffRefund";
+import QRManagerConfig from "@/components/QRManagerConfig";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -41,6 +42,7 @@ const AdminPage = () => {
         </Button>
       </div>
       <div className="p-4 space-y-6">
+        <QRManagerConfig />
         <TinkoffRefund />
         <ProductManager />
       </div>
