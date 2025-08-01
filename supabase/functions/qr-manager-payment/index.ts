@@ -42,12 +42,23 @@ serve(async (req) => {
     const qrManagerMerchantId = Deno.env.get('QR_MANAGER_MERCHANT_ID')
     const qrManagerApiUrl = Deno.env.get('QR_MANAGER_API_URL') || 'https://app.wapiserv.qrm.ooo'
 
+    console.log("🔑 Проверка секретов:", {
+      hasApiKey: !!qrManagerApiKey,
+      hasMerchantId: !!qrManagerMerchantId,
+      apiUrl: qrManagerApiUrl,
+      apiKeyLength: qrManagerApiKey ? qrManagerApiKey.length : 0
+    })
+
     if (!qrManagerApiKey || !qrManagerMerchantId) {
       console.error("❌ Отсутствуют учетные данные QR Manager")
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: 'QR Manager credentials not configured' 
+          error: 'QR Manager credentials not configured',
+          details: {
+            hasApiKey: !!qrManagerApiKey,
+            hasMerchantId: !!qrManagerMerchantId
+          }
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
