@@ -93,13 +93,15 @@ serve(async (req) => {
       const paymentParams = {
         sum: amount * 100, // Сумма в копейках (API ожидает копейки)
         qr_size: 400, // Размер QR кода
-        payment_purpose: `Order ${orderId}`, // Упрощенное описание для лучшей совместимости
-        merchant_order_id: orderId, // Добавляем ID заказа для отслеживания
-        // Убираем notification_url - не нужен вебхук
-        // Убираем дополнительные поля, которые могут вызывать проблемы
-        // customer_name: `${customerData.firstName} ${customerData.lastName}`,
-        // customer_phone: customerData.phone,
-        // customer_email: customerData.email
+        payment_purpose: `Заказ ${orderId}`, // Упрощенное описание
+        merchant_order_id: orderId, // ID заказа для отслеживания
+        // Добавляем обязательные параметры для СБП
+        currency: 'RUB',
+        payment_method: 'sbp',
+        // Информация о клиенте может быть важна
+        customer_name: `${customerData.firstName} ${customerData.lastName}`,
+        customer_phone: customerData.phone,
+        customer_email: customerData.email
       }
 
       // Валидация суммы
@@ -111,7 +113,10 @@ serve(async (req) => {
         sum_kopecks: paymentParams.sum,
         sum_rubles: (paymentParams.sum / 100).toFixed(2),
         payment_purpose: paymentParams.payment_purpose,
-        merchant_order_id: paymentParams.merchant_order_id
+        merchant_order_id: paymentParams.merchant_order_id,
+        currency: paymentParams.currency,
+        payment_method: paymentParams.payment_method,
+        customer: `${paymentParams.customer_name} (${paymentParams.customer_phone})`
       })
 
       try {
