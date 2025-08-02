@@ -96,9 +96,15 @@ serve(async (req) => {
         payment_purpose: `Order ${orderId}`, // Упрощенное описание для лучшей совместимости
         notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/qr-manager-webhook`,
         merchant_order_id: orderId, // Добавляем ID заказа для отслеживания
-        customer_name: `${customerData.firstName} ${customerData.lastName}`,
-        customer_phone: customerData.phone,
-        customer_email: customerData.email
+        // Убираем дополнительные поля, которые могут вызывать проблемы
+        // customer_name: `${customerData.firstName} ${customerData.lastName}`,
+        // customer_phone: customerData.phone,
+        // customer_email: customerData.email
+      }
+
+      // Валидация суммы
+      if (paymentParams.sum < 100 || paymentParams.sum > 100000000) {
+        throw new Error(`Недопустимая сумма: ${paymentParams.sum} копеек (${amount} руб.)`)
       }
 
       console.log("💳 Payment parameters:", {
@@ -134,6 +140,18 @@ serve(async (req) => {
 
         const qrManagerResponse = JSON.parse(responseText)
         console.log("✅ Успешный ответ QR Manager:", qrManagerResponse)
+
+        // Дополнительная проверка QR кода
+        if (qrManagerResponse && qrManagerResponse.results) {
+          const qrData = qrManagerResponse.results;
+          console.log("🔍 Анализ QR кода:", {
+            qr_link: qrData.qr_link,
+            qrc_id: qrData.qrc_id,
+            operation_id: qrData.operation_id,
+            sum_in_qr: qrData.qr_link ? qrData.qr_link.match(/sum=(\d+)/)?.[1] : 'не найдено',
+            expected_sum: paymentParams.sum
+          })
+        }
 
         // Проверяем наличие QR кода в ответе
         if (qrManagerResponse && qrManagerResponse.results && qrManagerResponse.results.qr_img) {

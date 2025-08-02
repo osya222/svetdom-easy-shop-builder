@@ -105,18 +105,51 @@ serve(async (req) => {
       console.log(`✅ Payment amount verification: ${paymentData.amount_rubles} рублей`);
     }
 
-    console.log('🔄 Redirecting to QR Manager proxy URL...');
+    console.log('🔄 Forwarding to QR Manager proxy URL...');
 
-    // Return 307 redirect to QR Manager proxy as required
-    // Pass all the original data in the redirect
-    return new Response(null, {
-      status: 307,
-      headers: {
-        ...corsHeaders,
-        'Location': 'https://cb.boogienwoogie/webhook/qrmanager',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
+    // Отправляем данные на прокси URL
+    try {
+      const proxyResponse = await fetch('https://cb.boogienwoogie/webhook/qrmanager', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(webhookData)
+      });
+
+      console.log(`📤 Proxy response status: ${proxyResponse.status}`);
+      const proxyResponseText = await proxyResponse.text();
+      console.log(`📤 Proxy response body: ${proxyResponseText.substring(0, 200)}`);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Webhook processed and forwarded',
+          paymentData: paymentData,
+          proxyStatus: proxyResponse.status
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
+    } catch (proxyError) {
+      console.error('❌ Proxy forwarding error:', proxyError);
+      
+      // Даже если прокси не работает, возвращаем успех для QR Manager
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Webhook received but proxy failed',
+          paymentData: paymentData,
+          error: proxyError.message
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
+      );
+    }
 
   } catch (error) {
     console.error('❌ Webhook processing error:', error);
