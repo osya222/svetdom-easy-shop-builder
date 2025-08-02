@@ -42,13 +42,6 @@ serve(async (req) => {
     const qrManagerMerchantId = Deno.env.get('QR_MANAGER_MERCHANT_ID')
     const qrManagerApiUrl = Deno.env.get('QR_MANAGER_API_URL') || 'https://app.wapiserv.qrm.ooo'
 
-    console.log("🔑 Проверка секретов:", {
-      hasApiKey: !!qrManagerApiKey,
-      hasMerchantId: !!qrManagerMerchantId,
-      apiUrl: qrManagerApiUrl,
-      apiKeyLength: qrManagerApiKey ? qrManagerApiKey.length : 0
-    })
-
     if (!qrManagerApiKey || !qrManagerMerchantId) {
       console.error("❌ Отсутствуют учетные данные QR Manager")
       return new Response(
@@ -89,22 +82,29 @@ serve(async (req) => {
         customer: `${customerData.firstName} ${customerData.lastName}`
       })
 
-      // Подготавливаем параметры для QR Manager API
-      // Основанное на анализе документации СБП и QR Manager
+      // Подготавливаем параметры для QR Manager API с учетом требований СБП
       const sumKopecks = amount * 100;
       
-      // Создаем короткий идентификатор без спецсимволов и префиксов
-      // СБП требует короткие, простые идентификаторы
-      const shortOrderId = orderId.replace(/ORDER_/, "").substring(0, 12);
+      // Создаем максимально совместимый с СБП идентификатор
+      // СБП требует: короткие ID, только латиница, без спецсимволов
+      const timestamp = Date.now().toString().slice(-12); // Последние 12 цифр timestamp
+      const shortOrderId = timestamp; // Используем timestamp как безопасный ID
+      
+      // Webhook URL для получения уведомлений о статусе платежа
+      const webhookUrl = `https://mcszrtlpbsesanylyzmi.supabase.co/functions/v1/qr-manager-webhook`;
       
       const paymentParams = {
-        sum: sumKopecks, // Сумма в копейках (обязательно)
+        sum: sumKopecks, // Сумма в копейках (обязательное поле)
         qr_size: 400, // Размер QR кода
-        // КРИТИЧНО: payment_purpose - только латинские символы для СБП
-        // Русские символы в назначении платежа могут приводить к ошибкам
+        // КРИТИЧНО: только латинские символы для СБП совместимости
         payment_purpose: `Payment ${shortOrderId}`,
-        // merchant_order_id должен быть коротким и без спецсимволов
-        merchant_order_id: shortOrderId
+        // merchant_order_id - короткий, безопасный идентификатор
+        merchant_order_id: shortOrderId,
+        // Добавляем webhook для получения уведомлений
+        notification_url: webhookUrl,
+        // Дополнительные параметры для улучшения совместимости
+        qr_type: 'dynamic', // Динамический QR код
+        currency: 'RUB' // Явно указываем валюту
       }
 
       // Валидация суммы для СБП (минимум 1 рубль, максимум 1 млн рублей)
@@ -122,35 +122,68 @@ serve(async (req) => {
         note: "Используем только латинские символы для СБП совместимости"
       })
 
+      console.log('🔑 Проверка конфигурации:', {
+        hasApiKey: !!qrManagerApiKey,
+        hasMerchantId: !!qrManagerMerchantId,
+        apiUrl: qrManagerApiUrl,
+        apiKeyLength: qrManagerApiKey?.length,
+        webhookUrl: paymentParams.notification_url
+      })
+
+      const qrManagerUrl = `${qrManagerApiUrl}/api/v1/payment/qr/create/`
+      const requestBody = {
+        ...paymentParams,
+        merchant_id: qrManagerMerchantId
+      }
+
+      console.log('🌐 QR Manager API request:', {
+        url: qrManagerUrl,
+        method: 'POST',
+        body: JSON.stringify(requestBody, null, 2),
+        headers: { 'Authorization': `Token ${qrManagerApiKey?.substring(0, 10)}...` }
+      })
+
       try {
-        // Вызываем API QR Manager для создания QR кода
-        const response = await fetch(`${qrManagerApiUrl}/operations/qr-code/`, {
+        const qrManagerResponse = await fetch(qrManagerUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-Api-Key': qrManagerApiKey,
+            'Authorization': `Token ${qrManagerApiKey}`,
             'Accept': 'application/json'
           },
-          body: JSON.stringify(paymentParams)
+          body: JSON.stringify(requestBody)
         })
 
-        const responseText = await response.text()
+        const responseText = await qrManagerResponse.text()
         console.log("📊 Ответ QR Manager API:", {
-          status: response.status,
-          statusText: response.statusText,
+          status: qrManagerResponse.status,
+          statusText: qrManagerResponse.statusText,
           response: responseText
         })
 
-        if (!response.ok) {
-          throw new Error(`QR Manager API error: ${response.status} ${responseText}`)
+        if (!qrManagerResponse.ok) {
+          const errorText = responseText
+          console.error('❌ QR Manager API error:', {
+            status: qrManagerResponse.status,
+            statusText: qrManagerResponse.statusText,
+            error: errorText,
+            request_body: requestBody,
+            possible_causes: [
+              'Неверный API ключ или merchant_id',
+              'Проблемы с форматом суммы',
+              'Некорректные параметры payment_purpose или merchant_order_id',
+              'Ошибки валидации СБП параметров'
+            ]
+          })
+          throw new Error(`QR Manager API error: ${qrManagerResponse.status} - ${errorText}`)
         }
 
-        const qrManagerResponse = JSON.parse(responseText)
-        console.log("✅ Успешный ответ QR Manager:", qrManagerResponse)
+        const qrManagerResponseData = JSON.parse(responseText)
+        console.log("✅ Успешный ответ QR Manager:", qrManagerResponseData)
 
         // Дополнительная проверка QR кода
-        if (qrManagerResponse && qrManagerResponse.results) {
-          const qrData = qrManagerResponse.results;
+        if (qrManagerResponseData && qrManagerResponseData.results) {
+          const qrData = qrManagerResponseData.results;
           const sumFromQr = qrData.qr_link ? qrData.qr_link.match(/sum=(\d+)/)?.[1] : null;
           console.log("🔍 Анализ QR кода:", {
             qr_link: qrData.qr_link,
@@ -170,34 +203,45 @@ serve(async (req) => {
         }
 
         // Проверяем наличие QR кода в ответе
-        if (qrManagerResponse && qrManagerResponse.results && qrManagerResponse.results.qr_img) {
-          const operationId = qrManagerResponse.results.operation_id || qrManagerResponse.results.payment_id || orderId;
+        if (qrManagerResponseData && qrManagerResponseData.results && qrManagerResponseData.results.qr_img) {
+          const operationId = qrManagerResponseData.results.operation_id || qrManagerResponseData.results.payment_id || orderId;
           
-          console.log("✅ QR код успешно создан:", {
+          console.log('✅ QR код успешно создан:', {
             operation_id: operationId,
             amount_rubles: (sumKopecks / 100).toFixed(2),
             amount_kopecks: sumKopecks,
-            qr_img: qrManagerResponse.results.qr_img.substring(0, 50) + '...',
+            qr_img: qrManagerResponseData.results.qr_img.substring(0, 50) + '...',
+            webhook_url: paymentParams.notification_url,
             final_payment_purpose: paymentParams.payment_purpose,
             final_merchant_order_id: paymentParams.merchant_order_id,
-            optimization: "СБП совместимые параметры применены"
+            sbp_optimizations: [
+              "Латинские символы в payment_purpose",
+              "Короткий merchant_order_id",
+              "Webhook для уведомлений",
+              "Явное указание валюты",
+              "Динамический QR код"
+            ]
           })
           
           return new Response(
             JSON.stringify({
               success: true,
-              qr_img: qrManagerResponse.results.qr_img,
-              payment_id: operationId,
-              operation_id: qrManagerResponse.results.operation_id,
-              qr_data: qrManagerResponse.results.qr_data,
-              qr_link: qrManagerResponse.results.qr_link,
+              qr_img: qrManagerResponseData.results.qr_img,
+              operation_id: operationId,
+              qrc_id: qrManagerResponseData.results.qrc_id,
               amount: amount,
-              amount_kopecks: sumKopecks,
-              orderId: orderId,
-              payment_purpose: paymentParams.payment_purpose
+              merchant_order_id: paymentParams.merchant_order_id,
+              original_order_id: orderId,
+              webhook_url: paymentParams.notification_url,
+              payment_instructions: {
+                ru: "Отсканируйте QR код в приложении банка для оплаты через СБП",
+                en: "Scan QR code in your bank app to pay via SBP"
+              },
+              sbp_compatible: true
             }),
-            { 
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            {
+              status: 200,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             }
           )
         } else {
