@@ -94,8 +94,8 @@ serve(async (req) => {
         sum: amount * 100, // Сумма в копейках (API ожидает копейки)
         qr_size: 400, // Размер QR кода
         payment_purpose: `Order ${orderId}`, // Упрощенное описание для лучшей совместимости
-        notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/qr-manager-webhook`,
         merchant_order_id: orderId, // Добавляем ID заказа для отслеживания
+        // Убираем notification_url - не нужен вебхук
         // Убираем дополнительные поля, которые могут вызывать проблемы
         // customer_name: `${customerData.firstName} ${customerData.lastName}`,
         // customer_phone: customerData.phone,
@@ -111,8 +111,7 @@ serve(async (req) => {
         sum_kopecks: paymentParams.sum,
         sum_rubles: (paymentParams.sum / 100).toFixed(2),
         payment_purpose: paymentParams.payment_purpose,
-        merchant_order_id: paymentParams.merchant_order_id,
-        notification_url: paymentParams.notification_url
+        merchant_order_id: paymentParams.merchant_order_id
       })
 
       try {
