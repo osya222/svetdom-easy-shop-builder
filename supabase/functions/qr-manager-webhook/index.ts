@@ -72,21 +72,37 @@ serve(async (req) => {
       );
     }
 
-    console.log('📊 QR Manager webhook data:', {
-      payment_id: webhookData.payment_id,
-      amount: webhookData.amount,
-      status: webhookData.status,
-      merchant_id: webhookData.merchant_id || 'not provided'
+    // Extract payment data using correct QR Manager field names
+    const paymentData = {
+      operation_id: webhookData.id,
+      payment_number: webhookData.number,
+      amount_kopecks: webhookData.sum,
+      amount_rubles: webhookData.sum ? (webhookData.sum / 100).toFixed(2) : 'unknown',
+      payment_purpose: webhookData.payment_purpose,
+      status: webhookData.operation_status,
+      merchant_id: webhookData.merchant_id || 'not provided',
+      qrc_id: webhookData.qrc_id
+    };
+
+    console.log('💰 Payment processed:', {
+      operation_id: paymentData.operation_id,
+      payment_number: paymentData.payment_number,
+      amount_rubles: `${paymentData.amount_rubles} руб`,
+      amount_kopecks: `${paymentData.amount_kopecks} коп`,
+      payment_purpose: paymentData.payment_purpose,
+      status: paymentData.status,
+      qrc_id: paymentData.qrc_id
     });
 
-    // Log expected QR Manager parameters
-    const requiredParams = ['payment_id', 'amount', 'status'];
+    // Check for critical QR Manager parameters (using correct field names)
+    const requiredParams = ['id', 'sum'];
     const missingParams = requiredParams.filter(param => !webhookData[param]);
     
     if (missingParams.length > 0) {
-      console.log('⚠️ Missing QR Manager parameters:', missingParams);
+      console.log('⚠️ Missing critical QR Manager parameters:', missingParams);
     } else {
-      console.log('✅ All required QR Manager parameters present');
+      console.log('✅ All critical payment data received successfully');
+      console.log(`✅ Payment amount verification: ${paymentData.amount_rubles} рублей`);
     }
 
     console.log('🔄 Redirecting to QR Manager proxy URL...');

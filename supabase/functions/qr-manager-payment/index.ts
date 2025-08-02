@@ -93,9 +93,21 @@ serve(async (req) => {
       const paymentParams = {
         sum: amount * 100, // Сумма в копейках (API ожидает копейки)
         qr_size: 400, // Размер QR кода
-        payment_purpose: `Заказ №${orderId} - ${customerData.firstName} ${customerData.lastName}`,
-        notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/qr-manager-webhook`
+        payment_purpose: `Order ${orderId}`, // Упрощенное описание для лучшей совместимости
+        notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/qr-manager-webhook`,
+        merchant_order_id: orderId, // Добавляем ID заказа для отслеживания
+        customer_name: `${customerData.firstName} ${customerData.lastName}`,
+        customer_phone: customerData.phone,
+        customer_email: customerData.email
       }
+
+      console.log("💳 Payment parameters:", {
+        sum_kopecks: paymentParams.sum,
+        sum_rubles: (paymentParams.sum / 100).toFixed(2),
+        payment_purpose: paymentParams.payment_purpose,
+        merchant_order_id: paymentParams.merchant_order_id,
+        notification_url: paymentParams.notification_url
+      })
 
       try {
         // Вызываем API QR Manager для создания QR кода
@@ -125,14 +137,27 @@ serve(async (req) => {
 
         // Проверяем наличие QR кода в ответе
         if (qrManagerResponse && qrManagerResponse.results && qrManagerResponse.results.qr_img) {
+          const operationId = qrManagerResponse.results.operation_id || qrManagerResponse.results.payment_id || orderId;
+          
+          console.log("✅ QR код успешно создан:", {
+            operation_id: operationId,
+            amount_rubles: (paymentParams.sum / 100).toFixed(2),
+            amount_kopecks: paymentParams.sum,
+            qr_img: qrManagerResponse.results.qr_img.substring(0, 50) + '...'
+          })
+          
           return new Response(
             JSON.stringify({
               success: true,
               qr_img: qrManagerResponse.results.qr_img,
-              payment_id: qrManagerResponse.results.payment_id || orderId,
+              payment_id: operationId,
+              operation_id: qrManagerResponse.results.operation_id,
               qr_data: qrManagerResponse.results.qr_data,
+              qr_link: qrManagerResponse.results.qr_link,
               amount: amount,
-              orderId: orderId
+              amount_kopecks: paymentParams.sum,
+              orderId: orderId,
+              payment_purpose: paymentParams.payment_purpose
             }),
             { 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -158,7 +183,7 @@ serve(async (req) => {
       }
     }
 
-    // Обработка других действий (например, проверка статуса)
+    // Обработка проверки статуса платежа
     if (requestData.action === 'status') {
       const { paymentId } = requestData
       
@@ -166,7 +191,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: 'Missing paymentId' 
+            error: 'Missing paymentId for status check' 
           }),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -175,12 +200,80 @@ serve(async (req) => {
         )
       }
 
-      // Здесь можно добавить проверку статуса платежа через API QR Manager
+      console.log(`🔍 Checking payment status for ID: ${paymentId}`)
+
+      try {
+        // Запрос статуса платежа через QR Manager API
+        const statusResponse = await fetch(`${qrManagerApiUrl}/operations/payment-status/${paymentId}/`, {
+          method: 'GET',
+          headers: {
+            'X-Api-Key': qrManagerApiKey,
+            'Accept': 'application/json'
+          }
+        })
+
+        const statusData = await statusResponse.text()
+        console.log(`📊 Status API response:`, {
+          status: statusResponse.status,
+          data: statusData
+        })
+
+        if (statusResponse.ok) {
+          const statusResult = JSON.parse(statusData)
+          return new Response(
+            JSON.stringify({
+              success: true,
+              paymentId,
+              status: statusResult.status || 'unknown',
+              data: statusResult
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        } else {
+          console.log(`⚠️ Status check failed: ${statusResponse.status}`)
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'Status check failed',
+              paymentId,
+              status: 'unknown'
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+      } catch (statusError: any) {
+        console.error(`❌ Status check error:`, statusError)
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Status check error: ${statusError.message}`,
+            paymentId,
+            status: 'error'
+          }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+    }
+
+    // Добавляем действие для тестирования
+    if (requestData.action === 'test') {
+      console.log(`🧪 Test request received`)
       return new Response(
         JSON.stringify({
           success: true,
-          status: 'pending',
-          paymentId
+          message: 'QR Manager payment service is working',
+          timestamp: new Date().toISOString(),
+          config: {
+            hasApiKey: !!qrManagerApiKey,
+            hasMerchantId: !!qrManagerMerchantId,
+            apiUrl: qrManagerApiUrl
+          }
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
