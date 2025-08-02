@@ -89,20 +89,22 @@ serve(async (req) => {
         customer: `${customerData.firstName} ${customerData.lastName}`
       })
 
-      // Подготавливаем параметры для QR Manager API согласно документации
+      // Подготавливаем параметры для QR Manager API
+      // Основанное на анализе документации СБП и QR Manager
       const sumKopecks = amount * 100;
+      
+      // Создаем короткий идентификатор без спецсимволов и префиксов
+      // СБП требует короткие, простые идентификаторы
+      const shortOrderId = orderId.replace(/ORDER_/, "").substring(0, 12);
+      
       const paymentParams = {
-        sum: sumKopecks, // Сумма в копейках
+        sum: sumKopecks, // Сумма в копейках (обязательно)
         qr_size: 400, // Размер QR кода
-        payment_purpose: `Заказ ${orderId}`, // Назначение платежа на русском
-        merchant_order_id: orderId, // ID заказа
-        // Убираем лишние параметры, которые могут мешать СБП
-        // currency: 'RUB', // СБП работает только с рублями, параметр может быть лишним
-        // payment_method: 'sbp', // Может конфликтовать с QR Manager
-        // Минимальные данные клиента
-        // customer_name: `${customerData.firstName} ${customerData.lastName}`,
-        // customer_phone: customerData.phone,
-        // customer_email: customerData.email
+        // КРИТИЧНО: payment_purpose - только латинские символы для СБП
+        // Русские символы в назначении платежа могут приводить к ошибкам
+        payment_purpose: `Payment ${shortOrderId}`,
+        // merchant_order_id должен быть коротким и без спецсимволов
+        merchant_order_id: shortOrderId
       }
 
       // Валидация суммы для СБП (минимум 1 рубль, максимум 1 млн рублей)
@@ -115,7 +117,9 @@ serve(async (req) => {
         sum_rubles: (sumKopecks / 100).toFixed(2),
         payment_purpose: paymentParams.payment_purpose,
         merchant_order_id: paymentParams.merchant_order_id,
-        qr_size: paymentParams.qr_size
+        qr_size: paymentParams.qr_size,
+        original_order_id: orderId,
+        note: "Используем только латинские символы для СБП совместимости"
       })
 
       try {
@@ -154,7 +158,10 @@ serve(async (req) => {
             operation_id: qrData.operation_id,
             sum_in_qr: sumFromQr,
             expected_sum: sumKopecks,
-            sum_match: sumFromQr === sumKopecks.toString()
+            sum_match: sumFromQr === sumKopecks.toString(),
+            payment_purpose_used: paymentParams.payment_purpose,
+            merchant_order_id_used: paymentParams.merchant_order_id,
+            optimization: "Используем латиницу для СБП совместимости"
           });
           
           if (sumFromQr && sumFromQr !== sumKopecks.toString()) {
@@ -170,7 +177,10 @@ serve(async (req) => {
             operation_id: operationId,
             amount_rubles: (sumKopecks / 100).toFixed(2),
             amount_kopecks: sumKopecks,
-            qr_img: qrManagerResponse.results.qr_img.substring(0, 50) + '...'
+            qr_img: qrManagerResponse.results.qr_img.substring(0, 50) + '...',
+            final_payment_purpose: paymentParams.payment_purpose,
+            final_merchant_order_id: paymentParams.merchant_order_id,
+            optimization: "СБП совместимые параметры применены"
           })
           
           return new Response(
