@@ -90,33 +90,32 @@ serve(async (req) => {
       })
 
       // Подготавливаем параметры для QR Manager API согласно документации
+      const sumKopecks = amount * 100;
       const paymentParams = {
-        sum: amount * 100, // Сумма в копейках (API ожидает копейки)
+        sum: sumKopecks, // Сумма в копейках
         qr_size: 400, // Размер QR кода
-        payment_purpose: `Заказ ${orderId}`, // Упрощенное описание
-        merchant_order_id: orderId, // ID заказа для отслеживания
-        // Добавляем обязательные параметры для СБП
-        currency: 'RUB',
-        payment_method: 'sbp',
-        // Информация о клиенте может быть важна
-        customer_name: `${customerData.firstName} ${customerData.lastName}`,
-        customer_phone: customerData.phone,
-        customer_email: customerData.email
+        payment_purpose: `Заказ ${orderId}`, // Назначение платежа на русском
+        merchant_order_id: orderId, // ID заказа
+        // Убираем лишние параметры, которые могут мешать СБП
+        // currency: 'RUB', // СБП работает только с рублями, параметр может быть лишним
+        // payment_method: 'sbp', // Может конфликтовать с QR Manager
+        // Минимальные данные клиента
+        // customer_name: `${customerData.firstName} ${customerData.lastName}`,
+        // customer_phone: customerData.phone,
+        // customer_email: customerData.email
       }
 
-      // Валидация суммы
-      if (paymentParams.sum < 100 || paymentParams.sum > 100000000) {
-        throw new Error(`Недопустимая сумма: ${paymentParams.sum} копеек (${amount} руб.)`)
+      // Валидация суммы для СБП (минимум 1 рубль, максимум 1 млн рублей)
+      if (sumKopecks < 100 || sumKopecks > 100000000) {
+        throw new Error(`Недопустимая сумма для СБП: ${sumKopecks} копеек (${amount} руб.). Минимум: 1 руб, Максимум: 1,000,000 руб`)
       }
 
       console.log("💳 Payment parameters:", {
-        sum_kopecks: paymentParams.sum,
-        sum_rubles: (paymentParams.sum / 100).toFixed(2),
+        sum_kopecks: sumKopecks,
+        sum_rubles: (sumKopecks / 100).toFixed(2),
         payment_purpose: paymentParams.payment_purpose,
         merchant_order_id: paymentParams.merchant_order_id,
-        currency: paymentParams.currency,
-        payment_method: paymentParams.payment_method,
-        customer: `${paymentParams.customer_name} (${paymentParams.customer_phone})`
+        qr_size: paymentParams.qr_size
       })
 
       try {
@@ -148,13 +147,19 @@ serve(async (req) => {
         // Дополнительная проверка QR кода
         if (qrManagerResponse && qrManagerResponse.results) {
           const qrData = qrManagerResponse.results;
+          const sumFromQr = qrData.qr_link ? qrData.qr_link.match(/sum=(\d+)/)?.[1] : null;
           console.log("🔍 Анализ QR кода:", {
             qr_link: qrData.qr_link,
             qrc_id: qrData.qrc_id,
             operation_id: qrData.operation_id,
-            sum_in_qr: qrData.qr_link ? qrData.qr_link.match(/sum=(\d+)/)?.[1] : 'не найдено',
-            expected_sum: paymentParams.sum
-          })
+            sum_in_qr: sumFromQr,
+            expected_sum: sumKopecks,
+            sum_match: sumFromQr === sumKopecks.toString()
+          });
+          
+          if (sumFromQr && sumFromQr !== sumKopecks.toString()) {
+            console.error(`⚠️ Несоответствие суммы в QR коде! Ожидается: ${sumKopecks}, В QR: ${sumFromQr}`);
+          }
         }
 
         // Проверяем наличие QR кода в ответе
@@ -163,8 +168,8 @@ serve(async (req) => {
           
           console.log("✅ QR код успешно создан:", {
             operation_id: operationId,
-            amount_rubles: (paymentParams.sum / 100).toFixed(2),
-            amount_kopecks: paymentParams.sum,
+            amount_rubles: (sumKopecks / 100).toFixed(2),
+            amount_kopecks: sumKopecks,
             qr_img: qrManagerResponse.results.qr_img.substring(0, 50) + '...'
           })
           
@@ -177,7 +182,7 @@ serve(async (req) => {
               qr_data: qrManagerResponse.results.qr_data,
               qr_link: qrManagerResponse.results.qr_link,
               amount: amount,
-              amount_kopecks: paymentParams.sum,
+              amount_kopecks: sumKopecks,
               orderId: orderId,
               payment_purpose: paymentParams.payment_purpose
             }),
