@@ -7,6 +7,7 @@ import ReadySets from "@/components/ReadySets";
 import Cart from "@/components/Cart";
 import MobileCart from "@/components/MobileCart";
 import Footer from "@/components/Footer";
+import AIConsultant from "@/components/AIConsultant";
 
 const Index = () => {
   const productsRef = useRef<HTMLDivElement>(null);
@@ -55,6 +56,9 @@ const Index = () => {
       
       {/* Mobile Cart */}
       <MobileCart />
+      
+      {/* AI Consultant */}
+      <AIConsultant />
     </div>
   );
 };
