@@ -4,13 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, X, Plus, Bot, User, Download } from 'lucide-react';
+import { MessageCircle, Send, X, Plus, Bot, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Product } from '@/types/product';
 import { useToast } from '@/components/ui/use-toast';
 import { useProducts } from '@/hooks/useProducts';
 import { useReadySets } from '@/hooks/useReadySets';
-import { pipeline } from '@huggingface/transformers';
 
 interface Message {
   id: string;
@@ -25,8 +24,6 @@ const AIConsultant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isModelLoading, setIsModelLoading] = useState(false);
-  const [generator, setGenerator] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
   const { toast } = useToast();
@@ -39,43 +36,6 @@ const AIConsultant = () => {
     "Нужны энергосберегающие варианты",
     "Покажите готовые наборы"
   ];
-
-  // Load the model when component mounts
-  useEffect(() => {
-    const loadModel = async () => {
-      if (!generator && isOpen) {
-        setIsModelLoading(true);
-        try {
-          const textGenerator = await pipeline(
-            'text-generation',
-            'microsoft/DialoGPT-medium',
-            { device: 'webgpu' }
-          );
-          setGenerator(textGenerator);
-        } catch (error) {
-          console.log('WebGPU не поддерживается, используем CPU');
-          try {
-            const textGenerator = await pipeline(
-              'text-generation',
-              'microsoft/DialoGPT-medium'
-            );
-            setGenerator(textGenerator);
-          } catch (fallbackError) {
-            console.error('Ошибка загрузки модели:', fallbackError);
-            toast({
-              title: "Ошибка",
-              description: "Не удалось загрузить AI модель",
-              variant: "destructive",
-            });
-          }
-        } finally {
-          setIsModelLoading(false);
-        }
-      }
-    };
-
-    loadModel();
-  }, [isOpen, generator, toast]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -258,7 +218,6 @@ ${readySets.map(s =>
         <CardTitle className="text-lg flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
           AI Консультант
-          {isModelLoading && <Download className="h-4 w-4 animate-spin" />}
         </CardTitle>
         <Button
           variant="ghost"
@@ -271,15 +230,8 @@ ${readySets.map(s =>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-4 space-y-4">
-        {isModelLoading && (
-          <div className="text-center text-sm text-muted-foreground">
-            <Download className="h-4 w-4 animate-spin mx-auto mb-2" />
-            Загружается AI модель...
-          </div>
-        )}
-
         {/* Quick Questions */}
-        {messages.length <= 1 && !isModelLoading && (
+        {messages.length <= 1 && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Быстрые вопросы:</p>
             <div className="grid grid-cols-1 gap-2">
@@ -394,12 +346,12 @@ ${readySets.map(s =>
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Задайте вопрос о товарах..."
-            disabled={isLoading || isModelLoading}
+            disabled={isLoading}
             className="flex-1"
           />
           <Button
             onClick={() => sendMessage(input)}
-            disabled={!input.trim() || isLoading || isModelLoading}
+            disabled={!input.trim() || isLoading}
             size="sm"
           >
             <Send className="h-4 w-4" />
