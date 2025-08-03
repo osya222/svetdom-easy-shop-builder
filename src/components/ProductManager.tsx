@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useProducts } from "@/hooks/useProducts";
 import { useReadySets } from "@/hooks/useReadySets";
+import { useCategories } from "@/hooks/useCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 const ProductManager = () => {
   const { products, loading, createProduct, updateProduct, deleteProduct } = useProducts();
   const { readySets, loading: setsLoading, createReadySet, updateReadySet, deleteReadySet } = useReadySets();
+  const { categories, loading: categoriesLoading } = useCategories();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSetDialogOpen, setIsSetDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -334,10 +336,15 @@ const ProductManager = () => {
                       <SelectValue placeholder="Выберите категорию" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="led">LED лампы</SelectItem>
-                      <SelectItem value="emergency">Аварийные лампы</SelectItem>
-                      <SelectItem value="decorative">Декоративные лампы</SelectItem>
-                      <SelectItem value="set">Готовые наборы</SelectItem>
+                      {categoriesLoading ? (
+                        <SelectItem value="" disabled>Загрузка...</SelectItem>
+                      ) : (
+                        categories.map((category) => (
+                          <SelectItem key={category.category_key} value={category.category_key}>
+                            {category.title}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                 </div>

@@ -5,7 +5,7 @@ export interface Product {
   lightColor: string;
   price: number;
   image: string;
-  category: "led" | "emergency" | "decorative" | "set";
+  category: "led" | "emergency" | "decorative" | "set" | "chandeliers";
   compatibleWith?: number[];
   description?: string;
 }
