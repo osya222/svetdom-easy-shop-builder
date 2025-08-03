@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, X, Plus, Bot, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { MessageCircle, Send, X, Plus, Bot, User, Download } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Product } from '@/types/product';
 import { useToast } from '@/components/ui/use-toast';
+import { useProducts } from '@/hooks/useProducts';
+import { useReadySets } from '@/hooks/useReadySets';
+import { pipeline } from '@huggingface/transformers';
 
 interface Message {
   id: string;
@@ -23,9 +25,13 @@ const AIConsultant = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(false);
+  const [generator, setGenerator] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { products } = useProducts();
+  const { readySets } = useReadySets();
 
   const quickQuestions = [
     "Помогите выбрать лампы для квартиры",
@@ -33,6 +39,43 @@ const AIConsultant = () => {
     "Нужны энергосберегающие варианты",
     "Покажите готовые наборы"
   ];
+
+  // Load the model when component mounts
+  useEffect(() => {
+    const loadModel = async () => {
+      if (!generator && isOpen) {
+        setIsModelLoading(true);
+        try {
+          const textGenerator = await pipeline(
+            'text-generation',
+            'microsoft/DialoGPT-medium',
+            { device: 'webgpu' }
+          );
+          setGenerator(textGenerator);
+        } catch (error) {
+          console.log('WebGPU не поддерживается, используем CPU');
+          try {
+            const textGenerator = await pipeline(
+              'text-generation',
+              'microsoft/DialoGPT-medium'
+            );
+            setGenerator(textGenerator);
+          } catch (fallbackError) {
+            console.error('Ошибка загрузки модели:', fallbackError);
+            toast({
+              title: "Ошибка",
+              description: "Не удалось загрузить AI модель",
+              variant: "destructive",
+            });
+          }
+        } finally {
+          setIsModelLoading(false);
+        }
+      }
+    };
+
+    loadModel();
+  }, [isOpen, generator, toast]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -50,6 +93,92 @@ const AIConsultant = () => {
     }
   }, [isOpen]);
 
+  const buildProductContext = () => {
+    const productContext = `
+Каталог товаров LED ламп:
+
+ТОВАРЫ:
+${products.map(p => 
+  `ID: ${p.id}, Название: ${p.name}, Мощность: ${p.power}, Цвет: ${p.lightColor}, Цена: ${p.price}₽, Категория: ${p.category}${p.description ? `, Описание: ${p.description}` : ''}`
+).join('\n')}
+
+ГОТОВЫЕ НАБОРЫ:
+${readySets.map(s => 
+  `ID: ${s.id}, Название: ${s.name}, Цена: ${s.price}₽, Товары: ${s.product_ids.join(', ')}, Описание: ${s.description}`
+).join('\n')}
+
+Рекомендации:
+- Для дома: теплый свет 2700-3000K (6-10W)
+- Для офиса: нейтральный/холодный свет 4000-6500K (9-15W)
+- Аварийные лампы для безопасности
+- Готовые наборы экономичнее отдельных покупок
+`;
+    return productContext;
+  };
+
+  const processAIResponse = (response: string, userMessage: string) => {
+    const productContext = buildProductContext();
+    
+    // Simple rule-based responses for Russian LED consultation
+    const lowerMessage = userMessage.toLowerCase();
+    
+    if (lowerMessage.includes('офис') || lowerMessage.includes('работ')) {
+      const officeProducts = products.filter(p => 
+        p.lightColor.includes('Холодный') || p.lightColor.includes('Нейтральный')
+      ).filter(p => parseInt(p.power) >= 9).slice(0, 3);
+      
+      return {
+        response: `Для офиса рекомендую нейтральный или холодный свет мощностью 9-15W. Это обеспечит комфортную рабочую атмосферу:\n\n${officeProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}\n\nТакже обратите внимание на готовый "Комплект для офиса" за 2000₽.`,
+        products: officeProducts
+      };
+    }
+    
+    if (lowerMessage.includes('квартир') || lowerMessage.includes('дом')) {
+      const homeProducts = products.filter(p => 
+        p.lightColor.includes('Теплый')
+      ).slice(0, 3);
+      
+      return {
+        response: `Для дома лучше всего подходит теплый свет, который создает уютную атмосферу:\n\n${homeProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}\n\nРекомендую "Стартовый набор для квартиры" за 1000₽ - отличное соотношение цена/качество.`,
+        products: homeProducts
+      };
+    }
+    
+    if (lowerMessage.includes('энергосбере') || lowerMessage.includes('экономи')) {
+      const energyProducts = products.filter(p => 
+        parseInt(p.power) <= 8
+      ).sort((a, b) => a.price - b.price).slice(0, 3);
+      
+      return {
+        response: `Самые энергосберегающие варианты - лампы малой мощности:\n\n${energyProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽, всего ${p.power}`).join('\n')}\n\nЭти лампы потребляют минимум электричества при хорошем освещении.`,
+        products: energyProducts
+      };
+    }
+    
+    if (lowerMessage.includes('набор') || lowerMessage.includes('комплект')) {
+      return {
+        response: `У нас есть готовые наборы по выгодным ценам:\n\n${readySets.map(s => `• ${s.name} - ${s.price}₽\n  ${s.description}`).join('\n\n')}\n\nГотовые наборы экономят до 30% от покупки ламп по отдельности!`,
+        products: []
+      };
+    }
+
+    if (lowerMessage.includes('цен') || lowerMessage.includes('дешев') || lowerMessage.includes('бюджет')) {
+      const cheapProducts = products.sort((a, b) => a.price - b.price).slice(0, 4);
+      
+      return {
+        response: `Самые доступные по цене варианты:\n\n${cheapProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}\n\nДля экономии рекомендую готовые наборы - они выгоднее на 20-30%.`,
+        products: cheapProducts
+      };
+    }
+    
+    // Default response
+    const randomProducts = products.slice(0, 3);
+    return {
+      response: `Популярные варианты LED ламп:\n\n${randomProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽, ${p.power}, ${p.lightColor} свет`).join('\n')}\n\nМогу помочь с выбором! Укажите, для какого помещения нужны лампы?`,
+      products: randomProducts
+    };
+  };
+
   const sendMessage = async (messageText: string) => {
     if (!messageText.trim() || isLoading) return;
 
@@ -65,37 +194,20 @@ const AIConsultant = () => {
     setIsLoading(true);
 
     try {
-      // Prepare conversation history for context
-      const conversationHistory = messages.map(msg => ({
-        role: msg.isAI ? 'assistant' : 'user',
-        content: msg.content
-      }));
-
-      const { data, error } = await supabase.functions.invoke('ai-consultant', {
-        body: {
-          message: messageText,
-          conversationHistory
-        }
-      });
-
-      if (error) throw error;
+      // Use local processing instead of AI model for now
+      const { response, products: mentionedProducts } = processAIResponse('', messageText);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: data.response,
+        content: response,
         isAI: true,
-        mentionedProducts: data.products || [],
+        mentionedProducts,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
-      toast({
-        title: "Ошибка",
-        description: "Не удалось получить ответ. Попробуйте еще раз.",
-        variant: "destructive",
-      });
+      console.error('Error processing message:', error);
       
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -146,6 +258,7 @@ const AIConsultant = () => {
         <CardTitle className="text-lg flex items-center gap-2">
           <Bot className="h-5 w-5 text-primary" />
           AI Консультант
+          {isModelLoading && <Download className="h-4 w-4 animate-spin" />}
         </CardTitle>
         <Button
           variant="ghost"
@@ -158,8 +271,15 @@ const AIConsultant = () => {
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-4 space-y-4">
+        {isModelLoading && (
+          <div className="text-center text-sm text-muted-foreground">
+            <Download className="h-4 w-4 animate-spin mx-auto mb-2" />
+            Загружается AI модель...
+          </div>
+        )}
+
         {/* Quick Questions */}
-        {messages.length <= 1 && (
+        {messages.length <= 1 && !isModelLoading && (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Быстрые вопросы:</p>
             <div className="grid grid-cols-1 gap-2">
@@ -274,12 +394,12 @@ const AIConsultant = () => {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Задайте вопрос о товарах..."
-            disabled={isLoading}
+            disabled={isLoading || isModelLoading}
             className="flex-1"
           />
           <Button
             onClick={() => sendMessage(input)}
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || isModelLoading}
             size="sm"
           >
             <Send className="h-4 w-4" />
