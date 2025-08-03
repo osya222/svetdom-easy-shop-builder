@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, X, Plus, Bot, User } from 'lucide-react';
+import { MessageCircle, Send, X, Plus, Bot, User, Package, Lightbulb } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { Product } from '@/types/product';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,10 +31,10 @@ const AIConsultant = () => {
   const { readySets } = useReadySets();
 
   const quickQuestions = [
-    "Помогите выбрать лампы для квартиры",
-    "Какие лампы лучше для офиса?",
-    "Нужны энергосберегающие варианты",
-    "Покажите готовые наборы"
+    { text: "Помогите выбрать лампы для квартиры", icon: Lightbulb },
+    { text: "Какие лампы лучше для офиса?", icon: Bot },
+    { text: "Нужны энергосберегающие варианты", icon: Lightbulb },
+    { text: "Покажите готовые наборы", icon: Package }
   ];
 
   useEffect(() => {
@@ -88,7 +88,11 @@ ${readySets.map(s =>
       ).filter(p => parseInt(p.power) >= 9).slice(0, 3);
       
       return {
-        response: `Для офиса рекомендую нейтральный или холодный свет мощностью 9-15W. Это обеспечит комфортную рабочую атмосферу:\n\n${officeProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}\n\nТакже обратите внимание на готовый "Комплект для офиса" за 2000₽.`,
+        response: `🏢 Для офиса рекомендую нейтральный или холодный свет мощностью 9-15W:
+
+${officeProducts.map(p => `💡 ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}
+
+📦 Также обратите внимание на готовый "Комплект для офиса" за 2000₽ - экономия до 30%!`,
         products: officeProducts
       };
     }
@@ -99,7 +103,11 @@ ${readySets.map(s =>
       ).slice(0, 3);
       
       return {
-        response: `Для дома лучше всего подходит теплый свет, который создает уютную атмосферу:\n\n${homeProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}\n\nРекомендую "Стартовый набор для квартиры" за 1000₽ - отличное соотношение цена/качество.`,
+        response: `🏠 Для дома лучше всего подходит теплый свет:
+
+${homeProducts.map(p => `💡 ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}
+
+📦 Рекомендую "Стартовый набор для квартиры" за 1000₽ - отличное соотношение цена/качество!`,
         products: homeProducts
       };
     }
@@ -110,14 +118,24 @@ ${readySets.map(s =>
       ).sort((a, b) => a.price - b.price).slice(0, 3);
       
       return {
-        response: `Самые энергосберегающие варианты - лампы малой мощности:\n\n${energyProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽, всего ${p.power}`).join('\n')}\n\nЭти лампы потребляют минимум электричества при хорошем освещении.`,
+        response: `⚡ Самые энергосберегающие варианты:
+
+${energyProducts.map(p => `💡 ${p.name} (ID:${p.id}) - ${p.price}₽, всего ${p.power}`).join('\n')}
+
+🌱 Эти лампы потребляют минимум электричества при отличном освещении!`,
         products: energyProducts
       };
     }
     
     if (lowerMessage.includes('набор') || lowerMessage.includes('комплект')) {
       return {
-        response: `У нас есть готовые наборы по выгодным ценам:\n\n${readySets.map(s => `• ${s.name} - ${s.price}₽\n  ${s.description}`).join('\n\n')}\n\nГотовые наборы экономят до 30% от покупки ламп по отдельности!`,
+        response: `📦 **Готовые наборы по выгодным ценам:**
+
+${readySets.map(s => `🔹 **${s.name}** - **${s.price}₽**
+   ${s.description}
+   Экономия до 30%!`).join('\n\n')}
+
+💡 Готовые наборы — это самый выгодный способ покупки!`,
         products: []
       };
     }
@@ -126,7 +144,11 @@ ${readySets.map(s =>
       const cheapProducts = products.sort((a, b) => a.price - b.price).slice(0, 4);
       
       return {
-        response: `Самые доступные по цене варианты:\n\n${cheapProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}\n\nДля экономии рекомендую готовые наборы - они выгоднее на 20-30%.`,
+        response: `💰 Самые доступные по цене варианты:
+
+${cheapProducts.map(p => `💡 ${p.name} (ID:${p.id}) - ${p.price}₽`).join('\n')}
+
+📦 Для экономии рекомендую готовые наборы - они выгоднее на 20-30%!`,
         products: cheapProducts
       };
     }
@@ -134,7 +156,11 @@ ${readySets.map(s =>
     // Default response
     const randomProducts = products.slice(0, 3);
     return {
-      response: `Популярные варианты LED ламп:\n\n${randomProducts.map(p => `• ${p.name} (ID:${p.id}) - ${p.price}₽, ${p.power}, ${p.lightColor} свет`).join('\n')}\n\nМогу помочь с выбором! Укажите, для какого помещения нужны лампы?`,
+      response: `💡 Популярные варианты LED ламп:
+
+${randomProducts.map(p => `💡 ${p.name} (ID:${p.id}) - ${p.price}₽, ${p.power}, ${p.lightColor} свет`).join('\n')}
+
+❓ Могу помочь с выбором! Укажите, для какого помещения нужны лампы?`,
       products: randomProducts
     };
   };
@@ -235,18 +261,22 @@ ${readySets.map(s =>
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">Быстрые вопросы:</p>
             <div className="grid grid-cols-1 gap-2">
-              {quickQuestions.map((question, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="sm"
-                  className="text-left h-auto p-2 text-xs"
-                  onClick={() => handleQuickQuestion(question)}
-                  disabled={isLoading}
-                >
-                  {question}
-                </Button>
-              ))}
+              {quickQuestions.map((question, index) => {
+                const IconComponent = question.icon;
+                return (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    className="text-left h-auto p-3 text-sm justify-start gap-2"
+                    onClick={() => handleQuickQuestion(question.text)}
+                    disabled={isLoading}
+                  >
+                    <IconComponent className="h-4 w-4 flex-shrink-0" />
+                    {question.text}
+                  </Button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -266,13 +296,15 @@ ${readySets.map(s =>
                       : 'bg-primary text-primary-foreground'
                   }`}
                 >
-                  <div className="flex items-start gap-2 mb-1">
+                  <div className="flex items-start gap-3">
                     {message.isAI ? (
-                      <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <Bot className="h-5 w-5 mt-1 flex-shrink-0 text-muted-foreground" />
                     ) : (
-                      <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                      <User className="h-5 w-5 mt-1 flex-shrink-0" />
                     )}
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <div className="flex-1">
+                      <p className="text-base leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                    </div>
                   </div>
                   
                   {/* Product Cards */}
